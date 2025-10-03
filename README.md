@@ -47,13 +47,13 @@ pnpm install
 
 ---
 
-## 5. Verify Setup
+## 5. Work on Front-End
 
-You can check if everything is installed correctly by running:
+To work on frontend run these
 
 ```bash
-pnpm -v
-git --version
+cd frontend
+pnpm dev
 ```
 
 ---
