@@ -1,13 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff;  /* main page background */
+  --foreground: #091f2f;  /* default text color */
+  --card: #f3f3f3;        /* card / surface color */
+  --primary: #091f2f;      /* navbar background */
+  --acc-orange: #fb4d42;     /* brand or accent color */
+  --acc-blue: #1871bd;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);        /* card / surface color */
+  --color-primary: var(--primary);      /* navbar background */
+  --color-acc-orange: var(--acc-orange);     /* brand or accent color */
+  --color-acc-blue: var(--acc-blue);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

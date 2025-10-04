@@ -1,32 +1,31 @@
 'use client';
 
 import Link from "next/link";
-import '../styles/navbar.css'
 
 export default function Navbar(){
   return (
     <>
-    <div className="nav">
+    <div className="bg-primary text-background text-xl sticky inset-0">
       <header className="flex flex-row justify-around">
         <div>
         <ul>
-          <li className="px-8 py-4 text-xl white italic"> {/* Can change font to make it better */}
+          <li className="px-8 py-4 italic"> {/* Can change font to make it better */}
             Smart City
           </li>
         </ul>
         </div>
         <div>
         <ul className="flex justify-start">
-          <li className="navele px-8 py-4 text-xl">
+          <li className="text-background hover:text-acc-orange px-8 py-4">
             <Link href={`/`}>Home</Link>
           </li>
-          <li className="navele px-8 py-4 text-xl">
+          <li className="text-background hover:text-acc-orange px-8 py-4">
             <Link href={`/dashboard`}>Dashboard</Link>
           </li>
-          <li className="navele px-8 py-4 text-xl">
+          <li className="text-background hover:text-acc-orange px-8 py-4">
             <Link href={`departments`}>Departments</Link>
           </li>
-          <li className="navele px-8 py-4 text-xl">
+          <li className="text-background hover:text-acc-orange px-8 py-4">
             <Link href={`/`}>Directory</Link> {/* A dropdown containg link to all other directories should be placed instead of this */}
           </li>
         </ul>
