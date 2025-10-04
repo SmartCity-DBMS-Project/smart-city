@@ -15,7 +15,7 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 w-full bg-primary text-white p-4 z-50">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <Link href="/" className="text-lg font-light italic">
+        <Link href="/" className="text-2xl italic">
           Smart City
         </Link>
 
@@ -42,7 +42,7 @@ export default function Navbar() {
             <NavigationMenuItem>
               <NavigationMenuTrigger>Directory</NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid gap-3 p-4 w-[200px]">
+                <ul className="grid gap-3 p-4 w-[200px] mt-2">
                   <li>
                     <NavigationMenuLink asChild>
                       <Link href="/contact-directory">Contact Directory</Link>
