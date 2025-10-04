@@ -7,6 +7,7 @@
   --primary: #091f2f;      /* navbar background */
   --acc-orange: #fb4d42;     /* brand or accent color */
   --acc-blue: #1871bd;
+  --acc-yellow: #fcb61a;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
@@ -46,6 +47,7 @@
   --color-primary: var(--primary);      /* navbar background */
   --color-acc-orange: var(--acc-orange);     /* brand or accent color */
   --color-acc-blue: var(--acc-blue);
+  --color-acc-yellow: var(--acc-yellow);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
