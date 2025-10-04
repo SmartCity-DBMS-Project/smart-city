@@ -19,7 +19,7 @@ export default function Navbar() {
           Smart City
         </Link>
 
-        <NavigationMenu>
+        <NavigationMenu viewport={false}>
           <NavigationMenuList>
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
