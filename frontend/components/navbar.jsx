@@ -1,53 +1,86 @@
-'use client';
+"use client";
 
+import * as React from "react";
 import Link from "next/link";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 
-export default function Navbar(){
+export default function Navbar() {
   return (
-    <>
-    <div className="bg-primary text-background text-xl sticky inset-0">
-      <header className="flex flex-row justify-around">
-        <div>
-        <ul>
-          <li className="px-8 py-4 italic"> {/* Can change font to make it better */}
-            Smart City
-          </li>
-        </ul>
-        </div>
-        <div>
-        <ul className="flex justify-start">
-          <li className="text-background hover:text-acc-orange px-8 py-4">
-            <Link href={`/`}>Home</Link>
-          </li>
-          <li className="text-background hover:text-acc-orange px-8 py-4">
-            <Link href={`/dashboard`}>Dashboard</Link>
-          </li>
-          <li className="text-background hover:text-acc-orange px-8 py-4">
-            <Link href={`departments`}>Departments</Link>
-          </li>
-          <li className="text-background hover:text-acc-orange px-8 py-4">
-            <Link href={`/`}>Directory</Link> {/* A dropdown containg link to all other directories should be placed instead of this */}
-          </li>
-        </ul>
-        </div>
-      </header>
-      <hr />
-      {/*
-      <div>
-          <Link href={`/`}> Home </Link>
-          <Link href={`/dashboard`}> Dashboard </Link>
-          <Link href={`/departments`}> Departments </Link>
-        <div>
-          Directory:-
-          <Link href={`/contact-directory`}> Contact Directory </Link>
-          <Link href={`/public-representatives`}> Public Representatives </Link>
-          <Link href={`/helpline`}> Helpline </Link>
-          <Link href={`/std-pin-codes`}> std&pin codes </Link>
-          <Link href={`/public-utilities`}> Public Utilities </Link>
-        </div>
-        </div>
-      */}
-    </div>
-    </>
+    <nav className="fixed top-0 left-0 w-full bg-primary text-white p-4 z-50">
+      <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <Link href="/" className="text-lg font-light italic">
+          Smart City
+        </Link>
+
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link href="/">Home</Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link href="/dashboard">Dashboard</Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link href="/departments">Departments</Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Directory</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid gap-3 p-4 w-[200px]">
+                  <li>
+                    <NavigationMenuLink asChild>
+                      <Link href="/contact-directory">Contact Directory</Link>
+                    </NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink asChild>
+                      <Link href="/public-representatives">Public Representatives</Link>
+                    </NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink asChild>
+                      <Link href="/helpline">Helpline</Link>
+                    </NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink asChild>
+                      <Link href="/std-pin-codes">STD & PIN codes</Link>
+                    </NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink asChild>
+                      <Link href="/public-utilities">Public Utilities</Link>
+                    </NavigationMenuLink>
+                  </li>
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link href="/">Login</Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+          </NavigationMenuList>
+        </NavigationMenu>
+      </div>
+    </nav>
   );
 }
