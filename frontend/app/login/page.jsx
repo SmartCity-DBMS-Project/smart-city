@@ -1,7 +1,7 @@
-"use client";
+'use client';
 import React from "react";
 import { useState } from "react";
-import Field from "./field";
+import LoginForm from "../../components/login_form";
 
 export default function Loginpage(){
     const [values, setValues] = useState({Email: '',Password: ''})
@@ -16,7 +16,7 @@ export default function Loginpage(){
     console.log(values);
     }
 
-    return(<form onSubmit={handleSubmit}>
+    {/*<form onSubmit={handleSubmit}>
         <Field id="email" name="Email" placeholder="Email" value={values.Email} onChange={handleChange}/>
         <br></br>
         <Field id="password" name="Password" placeholder="Password" value={values.Password} onChange={handleChange}/>
@@ -25,5 +25,13 @@ export default function Loginpage(){
         focus:outline-none focus:ring-2 focus:ring-blue-400 " >
             Submit
         </button>
-    </form>);
+    </form>*/}
+
+    return(
+    <main className="flex flex-col items-center min-h-screen justify-start p-24">
+        <div className="px-12 pb-14 bg-card rounded-2xl w-1/4 max-w-lg shadow-lg">
+            <LoginForm />
+        </div>
+    </main>
+    );
 }
