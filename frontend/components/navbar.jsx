@@ -74,7 +74,7 @@ export default function Navbar() {
 
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <Link href="/">Login</Link>
+                <Link href="/login">Login</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
 
