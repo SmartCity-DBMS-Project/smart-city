@@ -8,15 +8,15 @@ export default function Page(){
         {name: "Collages & Universities", link: "collages-universities"},
         {name: "Schools", link: "schools"},
         {name: "Hospitals", link: "hospitals"},
-        {name: "Postal", link: "postal"}
+        {name: "Postal Offices", link: "postal"}
     ]
     return (
         <main className="container mx-auto flex min-h-screen flex-col items-center justify-start px-4 py-16">
             <header className="mb-8 text-left w-10/12">
-                <h1 className="text-4xl font-medium text-primary mb-2">Public Utilities</h1>
+                <h1 className="text-4xl font-medium text-primary mb-2">Public Buildings</h1>
                 <hr className="my-4 h-1 bg-primary"/>
                 <p className="italic text-lg text-muted-foreground">
-                  Welcome to the Public Utilities page of our smart city portal. <br />
+                  Welcome to the Public Buildings page of our smart city portal. <br />
                 </p>
             </header>
             {/* Cards Row */}
