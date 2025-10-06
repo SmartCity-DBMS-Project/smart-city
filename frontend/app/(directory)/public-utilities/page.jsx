@@ -5,10 +5,10 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 export default function Page(){
     const utilities = [
         {name: "Banks", link: "banks"},
-        {name: "Collages & Universities", link: "collages-universities"},
-        {name: "Schools", link: "schools"},
-        {name: "Hospitals", link: "hospitals"},
-        {name: "Postal Offices", link: "postal"}
+        {name: "College", link: "College"},
+        {name: "School", link: "School"},
+        {name: "Hospital", link: "Hospital"},
+        {name: "Post Office", link: "postal"}
     ]
     return (
         <main className="container mx-auto flex min-h-screen flex-col items-center justify-start px-4 py-16">

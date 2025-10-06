@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model address {
+  add_id   Int        @id @default(autoincrement())
+  street   String?    @db.VarChar(100)
+  zone     String?    @db.VarChar(50)
+  flat_no  String?    @db.VarChar(20)
+  city     String?    @db.VarChar(50)
+  pincode  String?    @db.VarChar(10)
+  building building[]
+  citizen  citizen[]
+}
+
+model building {
+  build_id      Int            @id @default(autoincrement())
+  b_name        String         @db.VarChar(100)
+  add_id        Int?
+  type_id       Int?
+  address       address?       @relation(fields: [add_id], references: [add_id], map: "building_ibfk_1")
+  building_type building_type? @relation(fields: [type_id], references: [type_id], map: "building_ibfk_2")
+
+  @@index([add_id], map: "add_id")
+  @@index([type_id], map: "type_id")
+}
+
+model building_type {
+  type_id   Int        @id @default(autoincrement())
+  type_name String     @unique(map: "type_name") @db.VarChar(50)
+  category  String?    @db.VarChar(50)
+  building  building[]
+}
+
+model citizen {
+  citi_id  Int       @id @default(autoincrement())
+  c_name   String    @db.VarChar(100)
+  username String    @unique(map: "username") @db.VarChar(50)
+  password String    @db.VarChar(100)
+  phone    String?   @db.VarChar(15)
+  gender   String?   @db.Char(1)
+  dob      DateTime? @db.Date
+  add_id   Int?
+  address  address?  @relation(fields: [add_id], references: [add_id], map: "citizen_ibfk_1")
+
+  @@index([add_id], map: "add_id")
+}
