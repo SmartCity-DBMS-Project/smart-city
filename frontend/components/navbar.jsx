@@ -65,7 +65,7 @@ export default function Navbar() {
                   </li>
                   <li>
                     <NavigationMenuLink asChild>
-                      <Link href="/public-utilities">Public Buildings</Link>
+                      <Link href="/public-buildings">Public Buildings</Link>
                     </NavigationMenuLink>
                   </li>
                 </ul>
