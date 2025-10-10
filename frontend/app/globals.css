@@ -4,7 +4,7 @@
 
 :root {  /* main page background */  /* default text color */
   --card: #f3f3f3;        /* card / surface color */
-  --primary: #091f2f;      /* navbar background */
+  --primary: #091f2f;      /* primary */
   --acc-orange: #fb4d42;     /* brand or accent color */
   --acc-blue: #1871bd;
   --acc-yellow: #fcb61a;

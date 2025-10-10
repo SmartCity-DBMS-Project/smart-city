@@ -15,7 +15,7 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 w-full bg-primary text-white p-4 z-50">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <Link href="/" className="text-2xl italic">
+        <Link href="/" className="text-2xl italic" style={{ fontFamily: "'Lora', Georgia, serif" }}>
           Smart City
         </Link>
 
