@@ -52,7 +52,7 @@ function NavigationMenuItem({
 
 const navigationMenuTriggerStyle = cva(
   "text-lg group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 font-medium text-background transition-colors " +
-  "hover:text-acc-orange focus-visible:text-acc-orange data-[state=open]:text-acc-orange " +
+  "hover:text-acc-blue focus-visible:text-acc-blue data-[state=open]:text-acc-blue " +
   "disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none"
 );
 
@@ -99,7 +99,7 @@ function NavigationMenuViewport({
       <NavigationMenuPrimitive.Viewport
         data-slot="navigation-menu-viewport"
         className={cn(
-          "origin-top-center bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden border-none shadow md:w-[var(--radix-navigation-menu-viewport-width)]",
+          "origin-top-center bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden border-none md:w-[var(--radix-navigation-menu-viewport-width)]",
           className
         )}
         {...props} />
@@ -113,7 +113,7 @@ function NavigationMenuLink({ className, ...props }) {
       data-slot="navigation-menu-link"
       className={cn(
         "flex flex-col gap-1 rounded-sm p-1 px-4 text-lg text-background transition-colors " +
-        "hover:text-acc-orange focus:text-acc-orange data-[active=true]:text-acc-orange " +
+        "hover:text-acc-blue focus:text-acc-blue data-[active=true]:text-acc-blue " +
         "disabled:pointer-events-none disabled:opacity-50 focus:outline-none",
         className
       )}
@@ -135,7 +135,7 @@ function NavigationMenuIndicator({
       )}
       {...props}>
       <div
-        className="bg-border relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm shadow-md" />
+        className="bg-border relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm" />
     </NavigationMenuPrimitive.Indicator>
   );
 }
