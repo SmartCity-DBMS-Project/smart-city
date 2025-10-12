@@ -1,10 +1,9 @@
 const express = require('express')
 
+const { handleGetBuildings } = require('../controllers/buildings')
+
 const router = express.Router();
 
-router.get("/",async (req, res) => {
-    console.log("Got buildings request");
-    return res.status(200).json({message : "Successful..."})
-})
+router.get("/", handleGetBuildings);
 
 module.exports = router;
