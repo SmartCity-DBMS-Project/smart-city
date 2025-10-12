@@ -1,6 +1,6 @@
 export default function layout({children}){
     return (
-        <div>
+        <div className="bg-background min-h-screen">
             {/* Create a table which displays locations */}
             {children}
         </div>

@@ -16,21 +16,10 @@ export default function Loginpage(){
     console.log(values);
     }
 
-    {/*<form onSubmit={handleSubmit}>
-        <Field id="email" name="Email" placeholder="Email" value={values.Email} onChange={handleChange}/>
-        <br></br>
-        <Field id="password" name="Password" placeholder="Password" value={values.Password} onChange={handleChange}/>
-        <br></br>
-        <button onClick={handleSubmit} className="text-white bg-purple-400 p-1 border border-cyan-200 rounded-lg 
-        focus:outline-none focus:ring-2 focus:ring-blue-400 " >
-            Submit
-        </button>
-    </form>*/}
-
     return(
     <main className="flex flex-col items-center min-h-screen w-full">
-        {/* Full width section with distinct darker color */}
-        <section className="w-full py-12 md:py-24 bg-acc-blue/20">
+        {/* Full width section using homepage pattern with bg-background */}
+        <section className="w-full py-12 md:py-24 bg-background">
             <div className="container px-4 md:px-6 mx-auto max-w-md">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-primary mb-2">Welcome Back</h1>

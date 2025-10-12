@@ -1,10 +1,40 @@
+'use client';
+import { useParams } from "next/navigation";
+import { useEffect,useState } from "react";
+
+
 export default function utilityPage({params}){
-    const utility = params.utility;
+    const [buildings, setBuildings] = useState([]);
+    const {utility} = useParams();
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const response = await fetch(`https://localhost:8000/api/buildings/${utility}`);
+                if(response.ok){
+                    setBuildings(await response.json());
+                } else {
+                    console.error('Error fetching data:', error);
+                }
+                
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        if(utility){
+            fetchData();
+        }
+    }, [utility]);
+
+
+    // This is sample data structure - in reality this would be fetched from backend
+    // Each building object contains building name and address
+    
 
     return (
         <main className="flex flex-col items-center min-h-screen w-full">
-            {/* Header Section - Full width with distinct darker color */}
-            <section className="w-full py-12 md:py-16 bg-acc-blue/20">
+            {/* Header Section - Using homepage pattern with bg-background */}
+            <section className="w-full py-12 md:py-16 bg-background">
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                     <div className="mb-12 text-center">
                         <h1 className="text-4xl font-bold text-primary mb-4">
@@ -18,10 +48,10 @@ export default function utilityPage({params}){
                 </div>
             </section>
 
-            {/* Content Section - Full width with distinct darker color */}
-            <section className="w-full py-12 bg-acc-orange/20">
+            {/* Content Section - Using homepage pattern with bg-card */}
+            <section className="w-full py-12 bg-card">
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-                    <div className="bg-card rounded-2xl p-8 w-full max-w-6xl border border-input shadow-sm mx-auto">
+                    <div className="bg-card rounded-2xl p-8 w-full max-w-6xl border border-input shadow-sm mx-auto mb-8">
                         <div className="text-center">
                             <h2 className="text-2xl font-bold text-primary mb-4">Service Information</h2>
                             <p className="text-muted-foreground mb-6">
@@ -34,6 +64,26 @@ export default function utilityPage({params}){
                             >
                                 Contact Service Department
                             </a>
+                        </div>
+                    </div>
+
+                    {/* Buildings Card Structure */}
+                    <div className="mt-12">
+                        <h3 className="text-2xl font-bold text-primary mb-6 text-center">Associated Buildings</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {buildings.map((building) => (
+                                <div key={building.id} className="bg-card rounded-xl border border-input shadow-sm p-6 hover:shadow-md transition-shadow">
+                                    <div className="flex flex-col h-full">
+                                        <h4 className="text-xl font-bold text-primary mb-2">{building.name}</h4>
+                                        <p className="text-muted-foreground flex-grow">{building.address}</p>
+                                        <div className="mt-4">
+                                            <button className="text-acc-blue hover:underline text-sm font-medium">
+                                                View Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
