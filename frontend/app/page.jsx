@@ -45,7 +45,7 @@ export default function Home() {
   return (
     <main className="flex flex-col items-center min-h-screen w-full">
       {/* Hero Section - Full width with distinct darker color */}
-      <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-acc-blue/20">
+      <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <div className="flex flex-col items-center space-y-4 text-center">
             <div className="space-y-2">
@@ -75,14 +75,14 @@ export default function Home() {
       </section>
 
       {/* Services Section - Full width with distinct darker color */}
-      <section id="services" className="w-full py-12 md:py-24 lg:py-32 bg-acc-orange/20">
+      <section id="services" className="w-full py-12 md:py-24 lg:py-32 bg-card">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-primary">
                 Our Services
               </h2>
-              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+              <p className="mx-auto max-w-[700px] text-acc-blue md:text-xl">
                 Explore the wide range of services available through our digital platform.
               </p>
             </div>

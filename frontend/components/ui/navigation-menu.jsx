@@ -52,7 +52,7 @@ function NavigationMenuItem({
 
 const navigationMenuTriggerStyle = cva(
   "text-lg group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 font-medium text-background transition-colors " +
-  "hover:text-acc-blue focus-visible:text-acc-blue data-[state=open]:text-acc-blue " +
+  "hover:text-acc-orange focus-visible:text-acc-orange data-[state=open]:text-acc-orange " +
   "disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none"
 );
 
@@ -113,7 +113,7 @@ function NavigationMenuLink({ className, ...props }) {
       data-slot="navigation-menu-link"
       className={cn(
         "flex flex-col gap-1 rounded-sm p-1 px-4 text-lg text-background transition-colors " +
-        "hover:text-acc-blue focus:text-acc-blue data-[active=true]:text-acc-blue " +
+        "hover:text-acc-orange focus:text-acc-orange data-[active=true]:text-acc-orange " +
         "disabled:pointer-events-none disabled:opacity-50 focus:outline-none",
         className
       )}

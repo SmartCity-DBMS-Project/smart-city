@@ -3,15 +3,15 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {  /* main page background */  /* default text color */
-  --card: #ffffff;        /* card / surface color */
+  --card: #F3F3F3;       /* card / surface color */
   --primary: #091f2f;      /* navbar background */
   --acc-orange: #ff6b35;     /* brand or accent color */
   --acc-blue: #1a73e8;
   --acc-yellow: #fcb61a;
   --acc-green: #34a853;
-  --radius: 0.75rem;
   --background: #f8f9fa;  /* Light gray background */
   --foreground: #091f2f;
+  --radius: 0.75rem;
   --card-foreground: #091f2f;
   --popover: #ffffff;
   --popover-foreground: #091f2f;
