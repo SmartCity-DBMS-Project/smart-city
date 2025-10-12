@@ -43,8 +43,8 @@ export default function Page(){
 
     return (
         <main className="flex flex-col items-center min-h-screen w-full">
-            {/* Header Section - Full width with distinct darker color */}
-            <section className="w-full py-12 md:py-16 bg-acc-blue/20">
+            {/* Header Section - Using homepage pattern with bg-background */}
+            <section className="w-full py-12 md:py-16 bg-background">
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                     <div className="mb-12 text-center">
                         <h1 className="text-4xl font-bold text-primary mb-4">Contact Directory</h1>
@@ -56,8 +56,8 @@ export default function Page(){
                 </div>
             </section>
 
-            {/* Content Section - Full width with distinct darker color */}
-            <section className="w-full py-12 bg-acc-orange/20">
+            {/* Content Section - Using homepage pattern with bg-card */}
+            <section className="w-full py-12 bg-card">
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {contacts.map((contact, index) => (

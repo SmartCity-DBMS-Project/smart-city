@@ -17,27 +17,11 @@ export const metadata = {
   description: "Your one-stop digital platform for all city services",
 };
 
-{/*
-      <div>
-          <Link href={`/`}> Home </Link>
-          <Link href={`/dashboard`}> Dashboard </Link>
-          <Link href={`/departments`}> Departments </Link>
-        <div>
-          Directory:-
-          <Link href={`/contact-directory`}> Contact Directory </Link>
-          <Link href={`/public-representatives`}> Public Representatives </Link>
-          <Link href={`/helpline`}> Helpline </Link>
-          <Link href={`/std-pin-codes`}> std&pin codes </Link>
-          <Link href={`/public-utilities`}> Public Utilities </Link>
-        </div>
-        </div>
-      */}
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background`}
       >
         <Navbar />
         <main className="flex-1 pt-16">

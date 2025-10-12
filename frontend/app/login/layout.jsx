@@ -1,6 +1,6 @@
 export default function LoginLayout({ children }) {
   return (
-    <div>
+    <div className="bg-background min-h-screen">
       {children}
     </div>
   )
