@@ -28,7 +28,7 @@ export default function Navbar() {
               <NavigationMenuLink asChild>
                 <Link 
                   href="/" 
-                  className="px-3 py-2 rounded-md hover:bg-acc-blue/20 transition-colors"
+                  className="px-3 py-2 rounded-md transition-colors"
                 >
                   Home
                 </Link>
@@ -39,7 +39,7 @@ export default function Navbar() {
               <NavigationMenuLink asChild>
                 <Link 
                   href="/dashboard" 
-                  className="px-3 py-2 rounded-md hover:bg-acc-blue/20 transition-colors"
+                  className="px-3 py-2 rounded-md transition-colors"
                 >
                   Dashboard
                 </Link>
@@ -50,7 +50,7 @@ export default function Navbar() {
               <NavigationMenuLink asChild>
                 <Link 
                   href="/departments" 
-                  className="px-3 py-2 rounded-md hover:bg-acc-blue/20 transition-colors"
+                  className="px-3 py-2 rounded-md transition-colors"
                 >
                   Departments
                 </Link>
@@ -58,7 +58,7 @@ export default function Navbar() {
             </NavigationMenuItem>
 
             <NavigationMenuItem>
-              <NavigationMenuTrigger className="px-3 py-2 rounded-md hover:bg-acc-blue/20 transition-colors">
+              <NavigationMenuTrigger className="px-3 py-2 rounded-md transition-colors">
                 Directory
               </NavigationMenuTrigger>
               <NavigationMenuContent>
@@ -67,7 +67,7 @@ export default function Navbar() {
                     <NavigationMenuLink asChild>
                       <Link 
                         href="/contact-directory" 
-                        className="block p-3 rounded-md hover:bg-acc-blue/10 transition-colors"
+                        className="block p-3 rounded-md transition-colors"
                       >
                         <div className="font-medium">Contact Directory</div>
                         <div className="text-sm text-muted-foreground">City services & contacts</div>
@@ -78,7 +78,7 @@ export default function Navbar() {
                     <NavigationMenuLink asChild>
                       <Link 
                         href="/public-representatives" 
-                        className="block p-3 rounded-md hover:bg-acc-blue/10 transition-colors"
+                        className="block p-3 rounded-md transition-colors"
                       >
                         <div className="font-medium">Public Representatives</div>
                         <div className="text-sm text-muted-foreground">Local officials & leaders</div>
@@ -89,7 +89,7 @@ export default function Navbar() {
                     <NavigationMenuLink asChild>
                       <Link 
                         href="/helpline" 
-                        className="block p-3 rounded-md hover:bg-acc-blue/10 transition-colors"
+                        className="block p-3 rounded-md transition-colors"
                       >
                         <div className="font-medium">Helpline</div>
                         <div className="text-sm text-muted-foreground">Emergency & support numbers</div>
@@ -100,7 +100,7 @@ export default function Navbar() {
                     <NavigationMenuLink asChild>
                       <Link 
                         href="/std-pin-codes" 
-                        className="block p-3 rounded-md hover:bg-acc-blue/10 transition-colors"
+                        className="block p-3 rounded-md transition-colors"
                       >
                         <div className="font-medium">STD & PIN Codes</div>
                         <div className="text-sm text-muted-foreground">Area & postal codes</div>
@@ -111,7 +111,7 @@ export default function Navbar() {
                     <NavigationMenuLink asChild>
                       <Link 
                         href="/public-utilities" 
-                        className="block p-3 rounded-md hover:bg-acc-blue/10 transition-colors"
+                        className="block p-3 rounded-md transition-colors"
                       >
                         <div className="font-medium">Public Utilities</div>
                         <div className="text-sm text-muted-foreground">Services & utilities</div>
@@ -126,7 +126,7 @@ export default function Navbar() {
               <NavigationMenuLink asChild>
                 <Link 
                   href="/login" 
-                  className="px-4 py-2 bg-acc-green text-white rounded-md hover:text-acc-blue transition-colors"
+                  className="px-4 py-2 text-white rounded-md transition-colors"
                 >
                   Login
                 </Link>
