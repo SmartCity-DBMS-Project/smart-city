@@ -15,7 +15,7 @@ model address {
   flat_no         String?           @db.VarChar(20)
   city            String?           @db.VarChar(50)
   pincode         String?           @db.VarChar(10)
-  building        building?         @relation(fields: [building_id], references: [build_id], onDelete: NoAction, onUpdate: NoAction)
+  building        building?         @relation(fields: [building_id], references: [build_id], onDelete: Cascade)
   bill            bill[]
   citizen_address citizen_address[]
 
@@ -30,8 +30,8 @@ model bill {
   amount     Decimal?  @db.Decimal(10, 2)
   due_date   DateTime? @db.Date
   status     String?   @db.VarChar(50)
-  address    address?  @relation(fields: [address_id], references: [address_id], onDelete: NoAction, onUpdate: NoAction)
-  utility    utility?  @relation(fields: [utility_id], references: [utility_id], onDelete: NoAction, onUpdate: NoAction)
+  address    address?  @relation(fields: [address_id], references: [address_id], onDelete: Cascade)
+  utility    utility?  @relation(fields: [utility_id], references: [utility_id], onDelete: Cascade)
 }
 
 model building {
@@ -39,7 +39,7 @@ model building {
   b_name        String?        @db.VarChar(100)
   type_id       Int?
   address       address[]
-  building_type building_type? @relation(fields: [type_id], references: [type_id], onDelete: NoAction, onUpdate: NoAction)
+  building_type building_type? @relation(fields: [type_id], references: [type_id], onDelete: Cascade)
 }
 
 model building_type {
@@ -66,8 +66,8 @@ model citizen_address {
   role       String?   @db.VarChar(20)
   start_date DateTime? @db.Date
   end_date   DateTime? @db.Date
-  address    address   @relation(fields: [address_id], references: [address_id], onDelete: NoAction, onUpdate: NoAction)
-  citizen    citizen   @relation(fields: [citizen_id], references: [citizen_id], onDelete: NoAction, onUpdate: NoAction)
+  address    address   @relation(fields: [address_id], references: [address_id], onDelete: Cascade)
+  citizen    citizen   @relation(fields: [citizen_id], references: [citizen_id], onDelete: Cascade)
 
   @@id([citizen_id, address_id])
 }
@@ -84,5 +84,5 @@ model utility {
   charge_per_unit Decimal?    @db.Decimal(10, 2)
   dept_id         Int?
   bill            bill[]
-  department      department? @relation(fields: [dept_id], references: [dept_id], onDelete: NoAction, onUpdate: NoAction)
+  department      department? @relation(fields: [dept_id], references: [dept_id], onDelete: Cascade)
 }
