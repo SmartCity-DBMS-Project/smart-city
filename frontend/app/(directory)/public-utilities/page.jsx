@@ -4,12 +4,12 @@ import { Building, GraduationCap, School, Hospital, Mailbox, Book, Lightbulb, Tr
 
 export default function Page(){
     const utilities = [
-        {name: "Banks", link: "banks", icon: <Building className="h-8 w-8 text-acc-blue" />, description: "Financial services and institutions"},
-        {name: "Colleges & Universities", link: "colleges-universities", icon: <GraduationCap className="h-8 w-8 text-acc-blue" />, description: "Higher education institutions"},
-        {name: "Schools", link: "schools", icon: <School className="h-8 w-8 text-acc-blue" />, description: "Primary and secondary education"},
-        {name: "Hospitals", link: "hospitals", icon: <Hospital className="h-8 w-8 text-acc-blue" />, description: "Healthcare facilities and services"},
-        {name: "Postal", link: "postal", icon: <Mailbox className="h-8 w-8 text-acc-blue" />, description: "Mail and postal services"},
-        {name: "Libraries", link: "libraries", icon: <Book className="h-8 w-8 text-acc-blue" />, description: "Public libraries and resources"},
+        {name: "Banks", link: "bank", icon: <Building className="h-8 w-8 text-acc-blue" />, description: "Financial services and institutions"},
+        {name: "Colleges & Universities", link: "college", icon: <GraduationCap className="h-8 w-8 text-acc-blue" />, description: "Higher education institutions"},
+        {name: "Schools", link: "school", icon: <School className="h-8 w-8 text-acc-blue" />, description: "Primary and secondary education"},
+        {name: "Hospital", link: "hospital", icon: <Hospital className="h-8 w-8 text-acc-blue" />, description: "Healthcare facilities and services"},
+        {name: "Postal", link: "postal_office", icon: <Mailbox className="h-8 w-8 text-acc-blue" />, description: "Mail and postal services"},
+        {name: "Police Station", link: "police_station", icon: <Book className="h-8 w-8 text-acc-blue" />, description: "Public libraries and resources"},
         {name: "Utilities", link: "utilities", icon: <Lightbulb className="h-8 w-8 text-acc-blue" />, description: "Electricity, water, and gas services"},
         {name: "Transportation", link: "transportation", icon: <Train className="h-8 w-8 text-acc-blue" />, description: "Public transit and transportation"}
     ]
