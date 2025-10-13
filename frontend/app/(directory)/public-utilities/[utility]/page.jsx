@@ -6,21 +6,23 @@ import { useEffect,useState } from "react";
 export default function utilityPage({params}){
     const [buildings, setBuildings] = useState([]);
     const {utility} = useParams();
+    
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await fetch(`https://localhost:8000/api/buildings/${utility}`);
+                const response = await fetch(`http://localhost:8000/api/buildings/${utility}`);
                 if(response.ok){
-                    setBuildings(await response.json());
+                    const data = await response.json();
+                    setBuildings(data);
                 } else {
-                    console.error('Error fetching data:', error);
+                    console.error('Error fetching data: Response not OK');
                 }
                 
             } catch (error) {
-                console.error(error);
+                console.error('Error fetching data:', error);
             }
         }
-        
+
         if(utility){
             fetchData();
         }
@@ -38,7 +40,7 @@ export default function utilityPage({params}){
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                     <div className="mb-12 text-center">
                         <h1 className="text-4xl font-bold text-primary mb-4">
-                            {utility.charAt(0).toUpperCase() + utility.slice(1)}
+                            {utility ? utility.charAt(0).toUpperCase() + utility.slice(1) : 'Utility'}
                         </h1>
                         <div className="w-24 h-1 bg-acc-blue mx-auto mb-6 rounded-full"></div>
                         <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
@@ -72,10 +74,16 @@ export default function utilityPage({params}){
                         <h3 className="text-2xl font-bold text-primary mb-6 text-center">Associated Buildings</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {buildings.map((building) => (
-                                <div key={building.id} className="bg-card rounded-xl border border-input shadow-sm p-6 hover:shadow-md transition-shadow">
+                                <div key={building.build_id} className="bg-card rounded-xl border border-input shadow-sm p-6 hover:shadow-md transition-shadow">
                                     <div className="flex flex-col h-full">
-                                        <h4 className="text-xl font-bold text-primary mb-2">{building.name}</h4>
-                                        <p className="text-muted-foreground flex-grow">{building.address}</p>
+                                        <h4 className="text-xl font-bold text-primary mb-2">{building.b_name || 'Unnamed Building'}</h4>
+                                        {building.address && building.address.length > 0 && (
+                                            <p className="text-muted-foreground flex-grow">
+                                                {building.address[0].street}, {building.address[0].zone}
+                                                {building.address[0].city && `, ${building.address[0].city}`}
+                                                {building.address[0].pincode && ` - ${building.address[0].pincode}`}
+                                            </p>
+                                        )}
                                         <div className="mt-4">
                                             <button className="text-acc-blue hover:underline text-sm font-medium">
                                                 View Details
