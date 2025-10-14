@@ -6,8 +6,22 @@ const cors = require('cors');
 
 const app = express();
 
+const whiteList = [
+  'http://localhost:3000'
+]
+
 // Enable CORS for all routes
-app.use(cors());
+app.use(cors({
+  origin: function(origin, callback) {
+    if(!origin) return callback(null, true);
+    else if(whiteList.includes(origin)) {
+      return callback(null, true);
+    }
+    else {
+      callback(new Error('Not allowed cors'));
+    }
+  }
+}));
 
 const PORT = process.env.PORT || 8000;
 
