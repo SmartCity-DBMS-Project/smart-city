@@ -2,6 +2,8 @@ require('dotenv').config({ path: '../.env' });
 
 const express = require('express');
 const buildingRouter = require('./routes/buildings');
+const authRouter = require('./routes/auth');
+
 const cors = require('cors');
 
 const app = express();
@@ -28,6 +30,8 @@ const PORT = process.env.PORT || 8000;
 app.use(express.json());
 
 app.use("/api/buildings", buildingRouter);
+
+app.use("/auth", authRouter);
 
 // Global error handler
 app.use((err, req, res, next) => {
