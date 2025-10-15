@@ -16,13 +16,33 @@ import z from "zod";
 export default function LoginForm() {
   const form = useForm({
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
 
-  const onSubmit = (values) => {
-    console.log(values);
+  const onSubmit = async (values) => {
+    try{
+      const response = await fetch('http://localhost:8000/api/login', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json' },
+        body: JSON.stringify(values)
+      });
+
+      const data = await response.json();
+      console.log('Response: ', data);
+
+      if(response.ok){
+        alert('Loggin Successful');
+      } else {
+        alert("Login failed: " + data.message);
+      }
+    } catch(error) {
+      console.log("Error: ", error);
+      console.log(JSON.stringify(values));
+      alert("An error occured");
+    }
   };
 
   return (
@@ -37,7 +57,7 @@ export default function LoginForm() {
           {/* Username */}
           <FormField
             control={form.control}
-            name="username"
+            name="email"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-foreground">Email Address</FormLabel>
