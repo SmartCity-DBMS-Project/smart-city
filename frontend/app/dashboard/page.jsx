@@ -1,7 +1,21 @@
+"use client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, Clipboard, CheckCircle, Smile, FileText, CreditCard, Bell, Settings, Circle } from "lucide-react";
+import { useUser } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function DashboardPage(){
+    const { user, loading } = useUser();
+    const router = useRouter();
+
+    useEffect(() => {
+      if (!loading && !user) router.push("/login");
+    }, [user, loading]);
+
+    if (loading) return <p>Loading...</p>;
+    if (!user) return null; // while redirecting
+
     const stats = [
         { title: "Active Services", value: "24", change: "+12% from last month", icon: <BarChart3 className="h-6 w-6 text-acc-blue" /> },
         { title: "Pending Requests", value: "12", change: "+4% from last month", icon: <Clipboard className="h-6 w-6 text-acc-blue" /> },
@@ -36,7 +50,7 @@ export default function DashboardPage(){
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-primary mb-2">Dashboard</h1>
-                        <p className="text-muted-foreground">Welcome back! Here's what's happening today.</p>
+                        <p className="text-muted-foreground">Welcome back, {user.email}, {user.role}! Here's what's happening today.</p>
                     </div>
                 </div>
             </section>

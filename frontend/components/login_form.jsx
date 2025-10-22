@@ -12,8 +12,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import z from "zod";
+import { useUser } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
+
 
 export default function LoginForm() {
+  const { user, setUser } = useUser();
+  const router = useRouter();
+
   const form = useForm({
     defaultValues: {
       email: "",
@@ -23,18 +29,26 @@ export default function LoginForm() {
 
   const onSubmit = async (values) => {
     try{
-      const response = await fetch('http://localhost:8000/api/login', {
+      const response = await fetch('http://localhost:8000/auth/login', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json' },
-        body: JSON.stringify(values)
+        body: JSON.stringify(values),
+        credentials: "include",
       });
 
       const data = await response.json();
       console.log('Response: ', data);
 
-      if(response.ok){
-        alert('Loggin Successful');
+      if (response.ok) {
+        const res = await fetch("http://localhost:8000/auth/me", {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data); // contains { email, role }
+        }
+        router.push("/dashboard");
       } else {
         alert("Login failed: " + data.message);
       }

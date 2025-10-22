@@ -10,10 +10,21 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import { useUser } from "@/context/UserContext";
 
 
 
 export default function Navbar() {
+  const { user, setUser } = useUser();
+
+  const handleLogout = async () => {
+    await fetch("http://localhost:8000/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    setUser(null); // clear user state
+  };
+
   return (
     <nav className="fixed top-0 left-0 w-full bg-primary text-primary-foreground p-4 z-50">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -121,18 +132,25 @@ export default function Navbar() {
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
-
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <Link 
-                  href="/login" 
-                  className="px-4 py-2 text-white rounded-md transition-colors"
-                >
-                  Login
-                </Link>
+                {user ? (
+                  <button
+                    onClick={handleLogout}
+                    className="px-4 py-2 text-white rounded-md"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="px-4 py-2 text-white rounded-md"
+                  >
+                    Login
+                  </Link>
+                )}
               </NavigationMenuLink>
             </NavigationMenuItem>
-
           </NavigationMenuList>
         </NavigationMenu>
       </div>
