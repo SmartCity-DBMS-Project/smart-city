@@ -95,8 +95,19 @@ async function handleLogout(req, res){
   res.json({ message: "Logged out" });
 }
 
+async function handleMe(req, res) {
+  try {
+    const data = getUser(req.cookies.token);
+    // Fetch data from database somehow
+    res.status(200).json(data);
+  } catch(error) {
+    res.status(401).json({error: "Not logged in"});
+  }
+}
+
 module.exports = {
     handleLogin,
     handleLogout,
-    handlePasswordChange
+    handlePasswordChange,
+    handleMe
 }
