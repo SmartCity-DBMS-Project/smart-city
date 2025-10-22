@@ -1,5 +1,5 @@
 const express = require('express');
-const { handleGetBuildings, handleGetBuildingsByType } = require('../controllers/buildings');
+const { handleGetBuildings, handleGetBuildingsByType } = require('../controllers/buildingController');
 
 const router = express.Router();
 

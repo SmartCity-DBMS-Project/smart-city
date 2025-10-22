@@ -2,6 +2,7 @@ const prisma = require('../lib/prisma');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { formatDOB } = require("../utils/formatDOB")
+const { setUser, getUser } = require('../services/authServices')
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret-key';
 const salt = 10;
@@ -9,7 +10,6 @@ const salt = 10;
 async function handleLogin(req, res) {
     try{
         const data = req.body;
-        console.log("F1");
         const loginInfo = await prisma.login.findUnique({
           where: {
             email: data.email,
@@ -25,8 +25,6 @@ async function handleLogin(req, res) {
             },
           },
         });
-
-        console.log("F2");
 
         let isAuthenticated = false;
 
@@ -48,12 +46,19 @@ async function handleLogin(req, res) {
 
         if(!isAuthenticated) { return res.status(500).json({error: "Incorrect Password, try dob if not having password"}); }
 
-        const token = jwt.sign(
-          {email: data.email, role: loginInfo.role},
-          JWT_SECRET
-        );
+        const token = setUser({email: data.email, role: loginInfo.role});
+
+        const user = getUser(token);
+        console.log(`User details: `, user);
+
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: false,       
+          sameSite: "lax",     // allow cookie with frontend requests
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
         
-        return res.status(200).json({message: "Login successful", token: token, role: loginInfo.role});
+        return res.status(200).json({message: "Login successful"});
     } catch(error) {
         console.log(error);
         return res.status(500).json({error: "Unknown error occured"});
@@ -85,7 +90,13 @@ async function handlePasswordChange(req, res) {
   }
 }
 
+async function handleLogout(req, res){
+  res.clearCookie("token");
+  res.json({ message: "Logged out" });
+}
+
 module.exports = {
     handleLogin,
+    handleLogout,
     handlePasswordChange
 }
