@@ -4,6 +4,7 @@ import { BarChart3, Clipboard, CheckCircle, Smile, FileText, CreditCard, Bell, S
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Link from "next/link";
 
 export default function DashboardPage(){
     const { user, loading } = useUser();
@@ -31,10 +32,10 @@ export default function DashboardPage(){
     ];
 
     const quickActions = [
-        { name: "New Request", icon: <FileText className="h-6 w-6 mb-2 text-acc-blue" /> },
-        { name: "Pay Bills", icon: <CreditCard className="h-6 w-6 mb-2 text-acc-blue" /> },
-        { name: "Notifications", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" /> },
-        { name: "Settings", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" /> },
+        { name: "New Request", icon: <FileText className="h-6 w-6 mb-2 text-acc-blue" />, slug: "#" },
+        { name: "Pay Bills", icon: <CreditCard className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/bills" },
+        { name: "Notifications", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" />, slug: "#" },
+        { name: "Settings", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" />, slug: "#" },
     ];
 
     const systemStatus = [
@@ -105,13 +106,14 @@ export default function DashboardPage(){
                                 <CardContent>
                                     <div className="grid grid-cols-2 gap-3">
                                         {quickActions.map((action, index) => (
-                                            <button 
+                                            <Link
+                                                href={action.slug}
                                                 key={index} 
                                                 className="flex flex-col items-center justify-center p-4 rounded-lg border border-border hover:bg-accent transition-colors bg-background"
                                             >
                                                 {action.icon}
                                                 <span className="text-sm font-medium">{action.name}</span>
-                                            </button>
+                                            </Link>
                                         ))}
                                     </div>
                                 </CardContent>
