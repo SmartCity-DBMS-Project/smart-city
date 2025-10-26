@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Receipt, Plus, Edit, Trash2, Search, DollarSign, Calendar, MapPin, AlertCircle } from "lucide-react";
+import { Receipt, Plus, Edit, Trash2, Search, IndianRupee, Calendar, MapPin, AlertCircle } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 
@@ -248,10 +248,10 @@ export default function BillsPage() {
             <Card className="border-t-4 border-t-acc-blue">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Amount</CardTitle>
-                <DollarSign className="h-6 w-6 text-acc-blue" />
+                <IndianRupee className="h-6 w-6 text-acc-blue" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${stats.total.toFixed(2)}</div>
+                <div className="text-2xl font-bold">₹{stats.total.toFixed(2)}</div>
               </CardContent>
             </Card>
             <Card className="border-t-4 border-t-yellow-500">
@@ -329,7 +329,7 @@ export default function BillsPage() {
                         <TableCell className="font-medium">{bill.bill_id}</TableCell>
                         <TableCell>{bill.address_id}</TableCell>
                         <TableCell>{bill.bill_type}</TableCell>
-                        <TableCell>${Number(bill.amount).toFixed(2)}</TableCell>
+                        <TableCell>₹{Number(bill.amount).toFixed(2)}</TableCell>
                         <TableCell>{new Date(bill.due_date).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(bill.status)}`}>
