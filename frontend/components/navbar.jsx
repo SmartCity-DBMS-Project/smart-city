@@ -69,6 +69,17 @@ export default function Navbar() {
             </NavigationMenuItem>
 
             <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link 
+                  href="/bills" 
+                  className="px-3 py-2 rounded-md transition-colors"
+                >
+                  Bills
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
               <NavigationMenuTrigger className="px-3 py-2 rounded-md transition-colors">
                 Directory
               </NavigationMenuTrigger>
