@@ -17,15 +17,20 @@ export const UserProvider = ({ children }) => {
         if (res.ok) {
           const data = await res.json();
           setUser(data); // contains { email, role }
+        } else {
+          // Not logged in or session expired
+          setUser(null);
         }
       } catch (err) {
         console.error("Error fetching user:", err);
+        // Backend not reachable or network error
+        setUser(null);
       } finally {
         setLoading(false);
       }
     }
     fetchUser();
-  }, [user]);
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, setUser, loading }}>

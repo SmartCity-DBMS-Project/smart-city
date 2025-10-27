@@ -26,6 +26,8 @@ async function handleLogin(req, res) {
           },
         });
 
+        console.log("flag1")
+
         let isAuthenticated = false;
 
         if(!loginInfo) {
@@ -47,9 +49,6 @@ async function handleLogin(req, res) {
         if(!isAuthenticated) { return res.status(500).json({error: "Incorrect Password, try dob if not having password"}); }
 
         const token = setUser({email: data.email, role: loginInfo.role});
-
-        const user = getUser(token);
-        console.log(`User details: `, user);
 
         res.cookie("token", token, {
           httpOnly: true,
