@@ -26,8 +26,6 @@ async function handleLogin(req, res) {
           },
         });
 
-        console.log("flag1")
-
         let isAuthenticated = false;
 
         if(!loginInfo) {

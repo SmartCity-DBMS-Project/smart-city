@@ -11,24 +11,27 @@ import { Receipt, Plus, Edit, Trash2, Search, IndianRupee, Calendar, MapPin, Ale
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 
-export default function BillsPage() {
+export default function ManageBuildingsPage() {
   const { user, loading } = useUser();
   const router = useRouter();
   
-  const [bills, setBills] = useState([]);
-  const [filteredBills, setFilteredBills] = useState([]);
+  const [buildings, setBuildings] = useState([]);
+  const [filteredBuildings, setFilteredBuildings] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedBill, setSelectedBill] = useState(null);
-  const [formData, setFormData] = useState({
-    address_id: "",
-    bill_type: "",
-    amount: "",
-    due_date: "",
-    status: "PENDING"
+  const [selectedBuilding, setSelectedBuilding] = useState(null);
+  const [formBuildingData, setBuildingFormData] = useState({
+    building_name: "",
+    building_type: "",
+    category: "",
+  });
+  const [formResidentData, setResidentFormData] = useState({
+    building_id: "",
+    citizen_id: "",
+    role: "",
   });
 
   useEffect(() => {
@@ -36,28 +39,28 @@ export default function BillsPage() {
   }, [user, loading, router]);
 
   useEffect(() => {
-    if (user) fetchBills();
+    if (user) fetchBuildings();
   }, [user]);
 
   useEffect(() => {
     const filtered = searchTerm
-      ? bills.filter(bill => 
-          bill.bill_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          bill.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          bill.address_id?.toString().includes(searchTerm)
+      ? buildings.filter(building => 
+          building.building_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          building.building_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          building.category?.toString().includes(searchTerm)
         )
       : bills;
-    setFilteredBills(filtered);
-  }, [searchTerm, bills]);
+    setFilteredBuildings(filtered);
+  }, [searchTerm, buildings]);
 
-  const fetchBills = async () => {
+  const fetchBuildings = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:8000/api/bills", { method: "GET", credentials: "include" });
-      if (!response.ok) throw new Error("Failed to fetch bills");
+      const response = await fetch("http://localhost:8000/api/buildings", { method: "GET", credentials: "include" });
+      if (!response.ok) throw new Error("Failed to fetch buildings");
       const data = await response.json();
-      setBills(data);
-      setFilteredBills(data);
+      setBuildings(data);
+      // setFilteredBills(data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -65,15 +68,13 @@ export default function BillsPage() {
     }
   };
 
-  const handleCreateBill = async (e) => {
+  const handleCreateBuilding = async (e) => {
     e.preventDefault();
     try {
-      console.log('Creating bill with data:', {
-        address_id: parseInt(formData.address_id),
-        bill_type: formData.bill_type,
-        amount: parseFloat(formData.amount),
-        due_date: new Date(formData.due_date).toISOString(),
-        status: formData.status
+      console.log('Creating building with data:', {
+        building_name: formBuildingData.building_name,
+        building_type: parseInt(formBuildingData.building_type),
+        category: formBuildingData.category,
       });
       
       const response = await fetch("http://localhost:8000/api/bills", {
@@ -81,49 +82,45 @@ export default function BillsPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          address_id: parseInt(formData.address_id),
-          bill_type: formData.bill_type,
-          amount: parseFloat(formData.amount),
-          due_date: new Date(formData.due_date).toISOString(),
-          status: formData.status
+          building_name: formBuildingData.building_name,
+          building_type: parseInt(formBuildingData.building_type),
+          category: formBuildingData.category,
         }),
       });
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Failed to create bill" }));
+        const errorData = await response.json().catch(() => ({ error: "Failed to create building" }));
         console.error('Backend error:', errorData);
-        throw new Error(errorData.error || "Failed to create bill");
+        throw new Error(errorData.error || "Failed to create building");
       }
       
       const result = await response.json();
-      console.log('Bill created successfully:', result);
+      console.log('Building created successfully:', result);
       
-      await fetchBills();
+      await fetchBuildings();
       setIsCreateDialogOpen(false);
       resetForm();
     } catch (err) {
-      console.error('Error creating bill:', err);
-      alert("Error creating bill: " + err.message);
+      console.error('Error creating building:', err);
+      alert("Error creating building: " + err.message);
     }
   };
 
-  const handleUpdateBill = async (e) => {
+  const handleUpdateBuilding = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:8000/api/bills/${selectedBill.bill_id}`, {
+      const response = await fetch(`http://localhost:8000/api/buildings/${selectedBuilding.build_id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          address_id: parseInt(formData.address_id),
-          bill_type: formData.bill_type,
-          amount: parseFloat(formData.amount),
-          due_date: new Date(formData.due_date).toISOString(),
-          status: formData.status
+          building_name: formBuildingData.building_name,
+          building_type: parseInt(formBuildingData.building_type),
+          category: formBuildingData.category
         }),
       });
-      if (!response.ok) throw new Error("Failed to update bill");
-      await fetchBills();
+      if (!response.ok) throw new Error("Failed to update building");
+      await fetchBuildings();
       setIsEditDialogOpen(false);
       resetForm();
     } catch (err) {
@@ -131,36 +128,35 @@ export default function BillsPage() {
     }
   };
 
-  const handleDeleteBill = async (billId) => {
-    if (!confirm("Delete this bill?")) return;
+  const handleDeleteBuilding = async (buildId) => {
+    if (!confirm("Delete this building?")) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/bills/${billId}`, {
+      const response = await fetch(`http://localhost:8000/api/buildings/${buildId}`, {
         method: "DELETE",
         credentials: "include"
       });
-      if (!response.ok) throw new Error("Failed to delete bill");
-      await fetchBills();
+      if (!response.ok) throw new Error("Failed to delete building");
+      await fetchBuildings();
     } catch (err) {
       alert("Error: " + err.message);
     }
   };
 
-  const openEditDialog = (bill) => {
-    setSelectedBill(bill);
+  const openEditDialog = (building) => {
+    setSelectedBuilding(building);
     setFormData({
-      address_id: bill.address_id.toString(),
-      bill_type: bill.bill_type,
-      amount: bill.amount.toString(),
-      due_date: new Date(bill.due_date).toISOString().split('T')[0],
-      status: bill.status
+        building_name: building.building_name,
+        building_type: parseInt(building.building_type),
+        category: building.category,
     });
     setIsEditDialogOpen(true);
   };
 
-  const resetForm = () => {
-    setFormData({ address_id: "", bill_type: "", amount: "", due_date: "", status: "PENDING" });
+  const resetBuildingForm = () => {
+    setBuildingFormData({ building_name: "", building_type: "", category: "", });
   };
 
+  /*
   const getStatusColor = (status) => {
     switch (status) {
       case "PAID": return "bg-green-100 text-green-800";
@@ -180,6 +176,8 @@ export default function BillsPage() {
 
   const stats = calculateStats();
 
+  */
+
   if (loading || isLoading) return <div className="flex items-center justify-center min-h-screen"><p>Loading...</p></div>;
   if (!user) return null;
 
@@ -189,8 +187,8 @@ export default function BillsPage() {
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-primary mb-2">Bills Management</h1>
-              <p className="text-muted-foreground">View and manage your utility bills</p>
+              <h1 className="text-3xl font-bold text-primary mb-2">Buildings Management</h1>
+              <p className="text-muted-foreground">View and manage Buildings</p>
             </div>
             {user?.role === "ADMIN" && (
               <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
@@ -200,43 +198,31 @@ export default function BillsPage() {
                 <DialogTrigger asChild>
                   <Button className="bg-acc-blue hover:bg-acc-blue/90">
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Bill
+                    Add Building
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Create New Bill</DialogTitle>
-                    <DialogDescription>Add a new bill to the system</DialogDescription>
+                    <DialogTitle>Add New Building</DialogTitle>
+                    <DialogDescription>Add a new building to the system</DialogDescription>
                   </DialogHeader>
-                  <form onSubmit={handleCreateBill}>
+                  <form onSubmit={handleCreateBuilding}>
                     <div className="grid gap-4 py-4">
                       <div>
-                        <Label htmlFor="address_id">Address ID</Label>
-                        <Input id="address_id" type="number" value={formData.address_id || ""} onChange={(e) => setFormData({...formData, address_id: e.target.value})} required />
+                        <Label htmlFor="building_name">Building Name</Label>
+                        <Input id="building_name" value={formBuildingData.building_name || ""} onChange={(e) => setBuildingFormData({...formBuildingData, building_name: e.target.value})} required />
                       </div>
                       <div>
-                        <Label htmlFor="bill_type">Bill Type</Label>
-                        <Input id="bill_type" value={formData.bill_type || ""} onChange={(e) => setFormData({...formData, bill_type: e.target.value})} placeholder="e.g., Electricity, Water" required />
+                        <Label htmlFor="building_type">Building Type</Label>
+                        <Input id="building_type" value={formBuildingData.building_type || ""} onChange={(e) => setBuildingFormData({...formBuildingData, building_type: e.target.value})} placeholder="1 for Hospital, 2 for Bank, 3 for School, 4 for Collage, 5 for Police Station, 6 for Postal Office, 7 for Residency" required />
                       </div>
                       <div>
-                        <Label htmlFor="amount">Amount</Label>
-                        <Input id="amount" type="number" step="0.01" value={formData.amount || ""} onChange={(e) => setFormData({...formData, amount: e.target.value})} required />
-                      </div>
-                      <div>
-                        <Label htmlFor="due_date">Due Date</Label>
-                        <Input id="due_date" type="date" value={formData.due_date || ""} onChange={(e) => setFormData({...formData, due_date: e.target.value})} required />
-                      </div>
-                      <div>
-                        <Label htmlFor="status">Status</Label>
-                        <select id="status" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs" value={formData.status || "PENDING"} onChange={(e) => setFormData({...formData, status: e.target.value})}>
-                          <option value="PENDING">Pending</option>
-                          <option value="PAID">Paid</option>
-                          <option value="OVERDUE">Overdue</option>
-                        </select>
+                        <Label htmlFor="category">Category</Label>
+                        <Input id="category" value={formBuildingData.category || ""} onChange={(e) => setBuildingFormData({...formBuildingData, category: e.target.value})} placeholder="eg: hospital, bank, school, collage, police_station, postal_office, residency" required />
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit">Create Bill</Button>
+                      <Button type="submit">Add Building</Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
@@ -248,10 +234,9 @@ export default function BillsPage() {
             <Card className="border-t-4 border-t-acc-blue">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Amount</CardTitle>
-                <IndianRupee className="h-6 w-6 text-acc-blue" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹{stats.total.toFixed(2)}</div>
+                <div className="text-2xl font-bold"></div>
               </CardContent>
             </Card>
             <Card className="border-t-4 border-t-yellow-500">
@@ -260,7 +245,7 @@ export default function BillsPage() {
                 <AlertCircle className="h-6 w-6 text-yellow-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.pending}</div>
+                <div className="text-2xl font-bold"></div>
               </CardContent>
             </Card>
             <Card className="border-t-4 border-t-green-500">
@@ -269,7 +254,7 @@ export default function BillsPage() {
                 <Receipt className="h-6 w-6 text-green-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.paid}</div>
+                <div className="text-2xl font-bold"></div>
               </CardContent>
             </Card>
             <Card className="border-t-4 border-t-red-500">
@@ -278,7 +263,7 @@ export default function BillsPage() {
                 <Calendar className="h-6 w-6 text-red-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.overdue}</div>
+                <div className="text-2xl font-bold"></div>
               </CardContent>
             </Card>
           </div>
@@ -291,13 +276,13 @@ export default function BillsPage() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle>All Bills</CardTitle>
-                  <CardDescription>List of all bills in the system</CardDescription>
+                  <CardTitle>All Buildings</CardTitle>
+                  <CardDescription>List of all buildings in the system</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                   <Search className="h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search Bills..."
+                    placeholder="Search Buildings..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="max-w-sm bg-background"
@@ -309,23 +294,21 @@ export default function BillsPage() {
               {error ? (
                 <div className="text-center py-8 text-red-500">Error: {error}</div>
               ) : filteredBills.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No bills found</div>
+                <div className="text-center py-8 text-muted-foreground">No Buildings found</div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Bill ID</TableHead>
-                      <TableHead>Address ID</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>Building ID</TableHead>
+                      <TableHead>Building Name</TableHead>
+                      <TableHead>Building Type</TableHead>
+                      <TableHead>Categoty</TableHead>
                       {user?.role === "ADMIN" && <TableHead>Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredBills.map((bill) => (
-                      <TableRow key={bill.bill_id}>
+                    {filteredBuildings.map((building) => (
+                      <TableRow key={building.bill_id}>
                         <TableCell className="font-medium">{bill.bill_id}</TableCell>
                         <TableCell>{bill.address_id}</TableCell>
                         <TableCell>{bill.bill_type}</TableCell>
@@ -342,7 +325,7 @@ export default function BillsPage() {
                               <Button variant="outline" size="icon-sm" onClick={() => openEditDialog(bill)}>
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button variant="destructive" size="icon-sm" onClick={() => handleDeleteBill(bill.bill_id)}>
+                              <Button variant="destructive" size="icon-sm" onClick={() => handleDeleteBuilding(bill.bill_id)}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -363,7 +346,7 @@ export default function BillsPage() {
           setIsEditDialogOpen(open);
           if (!open) {
             resetForm();
-            setSelectedBill(null);
+            setSelectedBuilding(null);
           }
         }}>
           <DialogContent>
@@ -371,7 +354,7 @@ export default function BillsPage() {
               <DialogTitle>Edit Bill</DialogTitle>
               <DialogDescription>Update bill information</DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleUpdateBill}>
+            <form onSubmit={handleUpdateBuilding}>
               <div className="grid gap-4 py-4">
                 <div>
                   <Label htmlFor="edit_address_id">Address ID</Label>
