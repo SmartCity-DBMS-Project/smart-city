@@ -28,13 +28,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Search,
-  UserPlus,
-} from "lucide-react";
+import { Plus, Search, MapPin } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
@@ -50,19 +44,11 @@ export default function ManageBuildingsPage() {
   const [error, setError] = useState(null);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isCitizenDialogOpen, setIsCitizenDialogOpen] = useState(false);
-  const [selectedBuilding, setSelectedBuilding] = useState(null);
-
   const [buildingTypes, setBuildingTypes] = useState([]);
   const [formBuildingData, setBuildingFormData] = useState({
     building_name: "",
     building_type: "",
     category: "",
-  });
-  const [formCitizenData, setCitizenFormData] = useState({
-    building_id: "",
-    citizen_id: "",
-    role: "resident",
   });
 
   useEffect(() => {
@@ -148,57 +134,12 @@ export default function ManageBuildingsPage() {
     }
   };
 
-  // 🔹 Add citizen to building
-  const handleAddCitizen = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`http://localhost:8000/api/buildings/${formCitizenData.building_id}/citizens`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          building_id: formCitizenData.building_id,
-          citizen_id: formCitizenData.citizen_id,
-          role: formCitizenData.role,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to add citizen");
-      alert("Citizen added successfully!");
-      setIsCitizenDialogOpen(false);
-      resetCitizenForm();
-    } catch (err) {
-      alert("Error: " + err.message);
-    }
-  };
-
-  const handleDeleteBuilding = async (id) => {
-    if (!confirm("Delete this building?")) return;
-    try {
-      const res = await fetch(`http://localhost:8000/api/buildings/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to delete building");
-      await fetchBuildings();
-    } catch (err) {
-      alert("Error deleting building: " + err.message);
-    }
-  };
-
   const resetBuildingForm = () =>
     setBuildingFormData({
       building_name: "",
       building_type: "",
       category: "",
       custom_type_name: "",
-    });
-
-  const resetCitizenForm = () =>
-    setCitizenFormData({
-      building_id: "",
-      citizen_id: "",
-      role: "resident",
     });
 
   if (loading || isLoading)
@@ -288,7 +229,7 @@ export default function ManageBuildingsPage() {
                       </Select>
                     </div>
 
-                    {/* Show extra fields if “Custom Type” is selected */}
+                    {/* Show extra fields if "Custom Type" is selected */}
                     {formBuildingData.building_type === "custom" && (
                       <>
                         <div>
@@ -368,34 +309,16 @@ export default function ManageBuildingsPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredBuildings.map((b) => (
-                      <TableRow key={b.build_id}>
+                      <TableRow key={b.build_id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/dashboard/manage-buildings/${b.build_id}`)}>
                         <TableCell>{b.build_id}</TableCell>
                         <TableCell>{b.b_name}</TableCell>
                         <TableCell>{b.building_type?.type_name || "-"}</TableCell>
                         <TableCell>{b.building_type?.category || "-"}</TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="icon-sm"
-                              onClick={() => {
-                                setIsCitizenDialogOpen(true);
-                                setCitizenFormData({
-                                  ...formCitizenData,
-                                  building_id: b.build_id,
-                                });
-                              }}
-                            >
-                              <UserPlus className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="icon-sm"
-                              onClick={() => handleDeleteBuilding(b.build_id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          <Button variant="outline" size="sm">
+                            <MapPin className="h-4 w-4 mr-2" />
+                            View Details
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -406,56 +329,6 @@ export default function ManageBuildingsPage() {
           </Card>
         </div>
       </section>
-
-      {/* 👥 Add Citizen Dialog */}
-      <Dialog open={isCitizenDialogOpen} onOpenChange={setIsCitizenDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Add Citizen to Building</DialogTitle>
-            <DialogDescription>
-              Assign a citizen as Owner, Resident, or Tenant
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleAddCitizen} className="space-y-4">
-            <div>
-              <Label>Citizen ID</Label>
-              <Input
-                value={formCitizenData.citizen_id}
-                onChange={(e) =>
-                  setCitizenFormData({
-                    ...formCitizenData,
-                    citizen_id: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-
-            <div>
-              <Label>Role</Label>
-              <Select
-                value={formCitizenData.role}
-                onValueChange={(v) =>
-                  setCitizenFormData({ ...formCitizenData, role: v })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="owner">Owner</SelectItem>
-                  <SelectItem value="resident">Resident</SelectItem>
-                  <SelectItem value="tenant">Tenant</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <DialogFooter>
-              <Button type="submit">Add Citizen</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </main>
   );
 }
