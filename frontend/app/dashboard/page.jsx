@@ -1,18 +1,82 @@
 "use client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, Clipboard, CheckCircle, Smile, FileText, CreditCard, Bell, Settings, Circle } from "lucide-react";
+import { BarChart3, Clipboard, CheckCircle, Smile, FileText, CreditCard, Bell, Settings, Circle, User, Mail, Shield } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function DashboardPage(){
     const { user, loading } = useUser();
     const router = useRouter();
+    const [showPasswordForm, setShowPasswordForm] = useState(false);
+    const [passwordData, setPasswordData] = useState({
+        newPassword: "",
+        confirmNewPassword: ""
+    });
+    const [passwordError, setPasswordError] = useState("");
+    const [passwordSuccess, setPasswordSuccess] = useState("");
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
 
     useEffect(() => {
       if (!loading && !user) router.push("/login");
     }, [user, loading]);
+
+    const handlePasswordChange = async (e) => {
+        e.preventDefault();
+        setPasswordError("");
+        setPasswordSuccess("");
+        
+        // Validate passwords
+        if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+            setPasswordError("New passwords do not match");
+            return;
+        }
+        
+        if (passwordData.newPassword.length < 6) {
+            setPasswordError("Password must be at least 6 characters long");
+            return;
+        }
+        
+        setIsChangingPassword(true);
+        
+        try {
+            const response = await fetch(`http://localhost:8000/change-password/${user.email}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    password: passwordData.newPassword
+                })
+            });
+            
+            if (response.ok) {
+                setPasswordSuccess("Password changed successfully!");
+                setPasswordData({
+                    newPassword: "",
+                    confirmNewPassword: ""
+                });
+                // Hide the form after successful change
+                setTimeout(() => {
+                    setShowPasswordForm(false);
+                    setPasswordSuccess("");
+                }, 2000);
+            } else {
+                const errorData = await response.json();
+                setPasswordError(errorData.error || "Failed to change password");
+            }
+        } catch (error) {
+            setPasswordError("An error occurred while changing password");
+            console.error("Error changing password:", error);
+        } finally {
+            setIsChangingPassword(false);
+        }
+    };
 
     if (loading) return <p>Loading...</p>;
     if (!user) return null; // while redirecting
@@ -35,7 +99,7 @@ export default function DashboardPage(){
         { name: "New Request", icon: <FileText className="h-6 w-6 mb-2 text-acc-blue" />, slug: "#" },
         { name: "Pay Bills", icon: <CreditCard className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/bills" },
         { name: "Notifications", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" />, slug: "#" },
-        { name: "Settings", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" />, slug: "#" },
+        { name: "Settings", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/settings" },
     ];
 
     const systemStatus = [
@@ -50,8 +114,28 @@ export default function DashboardPage(){
             <section className="w-full py-12 md:py-16 bg-background">
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-primary mb-2">Dashboard</h1>
-                        <p className="text-muted-foreground">Welcome back, {user.email}, {user.role}! Here's what's happening today.</p>
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                            <div>
+                                <h1 className="text-3xl font-bold text-primary mb-2">Dashboard</h1>
+                                <p className="text-muted-foreground">Welcome back, {user.full_name || user.email}!</p>
+                            </div>
+                            <div className="flex items-center space-x-4 bg-card border rounded-lg p-4">
+                                <div className="bg-acc-blue/10 p-3 rounded-full">
+                                    <User className="h-6 w-6 text-acc-blue" />
+                                </div>
+                                <div>
+                                    <p className="font-medium">{user.full_name || user.email}</p>
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                        <Mail className="h-4 w-4 mr-1" />
+                                        <span>{user.email}</span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                        <Shield className="h-4 w-4 mr-1" />
+                                        <span>{user.role}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -116,6 +200,77 @@ export default function DashboardPage(){
                                             </Link>
                                         ))}
                                     </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="bg-card">
+                                <CardHeader>
+                                    <CardTitle>Change Password</CardTitle>
+                                    <CardDescription>Update your account security</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {!showPasswordForm ? (
+                                        <Button onClick={() => setShowPasswordForm(true)} className="w-full">
+                                            Change Password
+                                        </Button>
+                                    ) : (
+                                        <form onSubmit={handlePasswordChange} className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="newPassword">New Password</Label>
+                                                <Input
+                                                    id="newPassword"
+                                                    type="password"
+                                                    value={passwordData.newPassword}
+                                                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                                                    required
+                                                    minLength={6}
+                                                />
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
+                                                <Input
+                                                    id="confirmNewPassword"
+                                                    type="password"
+                                                    value={passwordData.confirmNewPassword}
+                                                    onChange={(e) => setPasswordData({...passwordData, confirmNewPassword: e.target.value})}
+                                                    required
+                                                    minLength={6}
+                                                />
+                                            </div>
+                                            
+                                            {passwordError && (
+                                                <div className="text-red-500 text-sm">{passwordError}</div>
+                                            )}
+                                            
+                                            {passwordSuccess && (
+                                                <div className="text-green-500 text-sm">{passwordSuccess}</div>
+                                            )}
+                                            
+                                            <div className="flex space-x-2">
+                                                <Button 
+                                                    type="submit" 
+                                                    disabled={isChangingPassword}
+                                                    className="flex-1"
+                                                >
+                                                    {isChangingPassword ? "Changing..." : "Change Password"}
+                                                </Button>
+                                                <Button 
+                                                    type="button" 
+                                                    variant="outline" 
+                                                    onClick={() => {
+                                                        setShowPasswordForm(false);
+                                                        setPasswordError("");
+                                                        setPasswordSuccess("");
+                                                        setPasswordData({ newPassword: "", confirmNewPassword: "" });
+                                                    }}
+                                                    className="flex-1"
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            </div>
+                                        </form>
+                                    )}
                                 </CardContent>
                             </Card>
 
