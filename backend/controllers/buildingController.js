@@ -198,7 +198,7 @@ async function handleGetBuildingTypes(req, res) {
 
 async function handleDeleteBuilding(req, res){
   try {
-    console.log('Deleting building ID:', req.params.id);
+    console.log('Deleting building ID:', req.params.building_id);
     
     await prisma.building.delete({
       where: { build_id: parseInt(req.params.id) },
@@ -225,6 +225,56 @@ async function handleAssignCitizensToBuilding(req, res) {
   }
 }
 
+async function handleGetBuildingById(req, res) {
+  try{
+    console.log(`handleGetBuildingById`);
+    return res.status(200).json({message: "Success"});
+  } catch(error) {
+    console.log(`Failed`);
+    return res.status(500).json({error: error.message});
+  }
+}
+
+async function handleGetAddressesByBuilding(req, res) {
+  try{
+    console.log(`handleGetAddressesByBuilding`);
+    return res.status(200).json({message: "Success"});
+  } catch(error) {
+    console.log(`Failed`);
+    return res.status(500).json({error: error.message});
+  }
+}
+
+async function handleAddAddressToBuilding(req, res) {
+  try{
+    console.log(`handleAddAddressToBuilding`);
+    return res.status(200).json({message: "Success"});
+  } catch(error) {
+    console.log(`Failed`);
+    return res.status(500).json({error: error.message});
+  }
+}
+
+async function handleUpdateAddress(req, res) {
+  try{
+    console.log(`handleUpdateAddress`);
+    return res.status(200).json({message: "Success"});
+  } catch(error) {
+    console.log(`Failed`);
+    return res.status(500).json({error: error.message});
+  }
+}
+
+async function handleDeleteAddress(req, res) {
+  try{
+    console.log(`handleDeleteAddress`);
+    return res.status(200).json({message: "Success"});
+  } catch(error) {
+    console.log(`Failed`);
+    return res.status(500).json({error: error.message});
+  }
+}
+
 
 module.exports = {
     handleGetBuildings,
@@ -233,4 +283,9 @@ module.exports = {
     handlePostBuilding,
     handleDeleteBuilding,
     handleAssignCitizensToBuilding,
+    handleGetBuildingById,
+    handleGetAddressesByBuilding,
+    handleAddAddressToBuilding,
+    handleUpdateAddress,
+    handleDeleteAddress,
 }

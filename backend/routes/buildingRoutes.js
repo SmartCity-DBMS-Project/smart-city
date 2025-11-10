@@ -5,18 +5,29 @@ const {
     handlePostBuilding,
     handleGetBuildingTypes,
     handleDeleteBuilding,
-    handleAssignCitizensToBuilding
+    handleAssignCitizensToBuilding,
+    handleGetBuildingById,
+    handleGetAddressesByBuilding,
+    handleAddAddressToBuilding,
+    handleUpdateAddress,
+    handleDeleteAddress,
 } = require('../controllers/buildingController');
 
 const router = express.Router();
 
-router.get("/", handleGetBuildings);
 router.get("/building-type", handleGetBuildingTypes);
-router.get("/:type", handleGetBuildingsByType);
+router.get("/types/:type", handleGetBuildingsByType);
 
-router.post("/", handlePostBuilding);
+router.get("/", handleGetBuildings);
+router.get("/:building_id", handleGetBuildingById);
+router.post("/", handlePostBuilding);  
+router.delete("/:building_id", handleDeleteBuilding);
+
 router.post("/:building_id/citizens", handleAssignCitizensToBuilding);
 
-router.delete("/:id", handleDeleteBuilding);
+router.get("/:building_id/addresses", handleGetAddressesByBuilding);
+router.post("/:building_id/addresses", handleAddAddressToBuilding);
+router.put("/:building_id/addresses/:address_id", handleUpdateAddress);
+router.delete("/:building_id/addresses/:address_id", handleDeleteAddress);
 
 module.exports = router;
