@@ -152,7 +152,7 @@ export default function ManageBuildingsPage() {
   const handleAddCitizen = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:8000/api/building-citizens", {
+      const response = await fetch(`http://localhost:8000/api/buildings/${formCitizenData.building_id}/citizens`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
