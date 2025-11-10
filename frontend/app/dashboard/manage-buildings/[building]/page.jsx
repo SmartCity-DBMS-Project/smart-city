@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import {
   Card,
   CardContent,
@@ -36,7 +36,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 export default function BuildingDetailsPage({ params }) {
   const { user, loading } = useUser();
   const router = useRouter();
-  const buildingId = params.building;
+  const resolvedParams = use(params);
+  const buildingId = resolvedParams.building;
 
   const [building, setBuilding] = useState(null);
   const [addresses, setAddresses] = useState([]);
