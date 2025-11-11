@@ -325,7 +325,7 @@ export default function BuildingDetailsPage({ params }) {
                   </TableHeader>
                   <TableBody>
                     {addresses.map((address) => (
-                      <TableRow key={address.address_id}>
+                      <TableRow key={address.address_id} className="cursor-pointer" onClick={() => router.push(`/dashboard/manage-buildings/${building_id}/address/${address.address_id}`)}>
                         <TableCell>{address.address_id}</TableCell>
                         <TableCell>{address.flat_no}</TableCell>
                         <TableCell>
