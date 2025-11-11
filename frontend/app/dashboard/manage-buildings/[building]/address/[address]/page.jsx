@@ -64,12 +64,14 @@ export default function AddressDetailsPage({ params }) {
 
   // Redirect unauthenticated users
   useEffect(() => {
+    console.log("User context ->", { user, loading });
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
 
   // Fetch address & citizens once user is loaded
   useEffect(() => {
     if (user && address_id) {
+      console.log("User context ->", { user, loading });
       fetchAddressDetails();
       fetchCitizens();
       fetchCitizenList(); // 👈 NEW: load global citizens

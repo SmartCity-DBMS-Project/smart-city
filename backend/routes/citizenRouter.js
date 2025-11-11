@@ -1,7 +1,10 @@
 const express = require('express');
 const {
+    handleGetAllCitizens,
 } = require('../controllers/citizenController');
 
-// Citizens of a specific address
+const router = express.Router();
+
+router.get("/", handleGetAllCitizens);
 
 module.exports = router;
