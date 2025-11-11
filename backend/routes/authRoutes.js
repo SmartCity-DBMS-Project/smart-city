@@ -1,9 +1,12 @@
 const express = require('express');
 const { handleLogin, handleLogout, handlePasswordChange, handleMe } = require('../controllers/authController')
-
+const { checkAuthentication, authorizeRoles } = require('../middlewares/authMiddlewares');
 const router = express.Router();
 
 router.post("/login", handleLogin);
+
+router.use(checkAuthentication);
+
 router.post("/logout", handleLogout);
 
 router.patch("/change-password/:email", handlePasswordChange);
