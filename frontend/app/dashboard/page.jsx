@@ -96,6 +96,8 @@ export default function DashboardPage(){
         { name: "Pay Bills", icon: <CreditCard className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/bills" },
         { name: "Notifications", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" />, slug: "#" },
         { name: "Settings", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/settings" },
+        { name: "Manage Building", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/manage-buildings" },
+        { name: "Manage Citizens", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/manage-citizens" },
     ];
 
     const systemStatus = [

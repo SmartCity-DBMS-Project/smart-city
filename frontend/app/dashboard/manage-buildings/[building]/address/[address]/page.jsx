@@ -1,0 +1,424 @@
+"use client";
+
+import { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { ArrowLeft, Plus, Edit, Trash2 } from "lucide-react";
+
+export default function AddressDetailsPage({ params }) {
+  const { user, loading } = useUser();
+  const router = useRouter();
+  // const resolvedParams = use(params);
+  const { building_id, address_id } = params;
+
+  const [addressDetails, setAddressDetails] = useState(null);
+  const [citizens, setCitizens] = useState([]);
+  const [citizenList, setCitizenList] = useState([]); // 👈 NEW: for dropdown
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [isAddCitizenDialogOpen, setIsAddCitizenDialogOpen] = useState(false);
+  const [isEditCitizenDialogOpen, setIsEditCitizenDialogOpen] = useState(false);
+  const [selectedCitizen, setSelectedCitizen] = useState(null);
+
+  const [citizenForm, setCitizenForm] = useState({
+    citizen_id: "",
+    role: "",
+    start_date: "",
+    end_date: "",
+  });
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (!loading && !user) router.push("/login");
+  }, [user, loading, router]);
+
+  // Fetch address & citizens once user is loaded
+  useEffect(() => {
+    if (user && address_id) {
+      fetchAddressDetails();
+      fetchCitizens();
+      fetchCitizenList(); // 👈 NEW: load global citizens
+    }
+  }, [user, address_id]);
+
+  // ============================
+  // Fetch Address Info
+  // ============================
+  const fetchAddressDetails = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}`,
+        { credentials: "include" }
+      );
+      if (!res.ok) throw new Error("Failed to fetch address details");
+      const data = await res.json();
+      setAddressDetails(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // ============================
+  // Fetch Citizens linked to this address
+  // ============================
+  const fetchCitizens = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(
+        `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}/citizens`,
+        { credentials: "include" }
+      );
+      if (!res.ok) throw new Error("Failed to fetch citizens");
+      const data = await res.json();
+      setCitizens(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ============================
+  // Fetch Global Citizen List (for dropdown)
+  // ============================
+  const fetchCitizenList = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/citizens`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch citizen list");
+      const data = await res.json();
+      setCitizenList(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // ============================
+  // Add Citizen
+  // ============================
+  const handleAddCitizen = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}/citizens`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            citizen_id: Number(citizenForm.citizen_id),
+            role: citizenForm.role,
+            start_date: citizenForm.start_date || null,
+            end_date: citizenForm.end_date || null,
+          }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed to add citizen");
+      await fetchCitizens();
+      setIsAddCitizenDialogOpen(false);
+      resetForm();
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  // ============================
+  // Update Citizen
+  // ============================
+  const handleUpdateCitizen = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}/citizens/${selectedCitizen.citizen_id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            role: citizenForm.role,
+            start_date: citizenForm.start_date || null,
+            end_date: citizenForm.end_date || null,
+          }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed to update citizen");
+      await fetchCitizens();
+      setIsEditCitizenDialogOpen(false);
+      resetForm();
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  // ============================
+  // Delete Citizen
+  // ============================
+  const handleDeleteCitizen = async (citizenId) => {
+    if (!confirm("Remove this citizen from this address?")) return;
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}/citizens/${citizenId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error("Failed to delete citizen");
+      await fetchCitizens();
+    } catch (err) {
+      alert("Error deleting citizen: " + err.message);
+    }
+  };
+
+  // Helpers
+  const openEditCitizenDialog = (citizen) => {
+    setSelectedCitizen(citizen);
+    setCitizenForm({
+      citizen_id: citizen.citizen_id,
+      role: citizen.role,
+      start_date: citizen.start_date?.split("T")[0] || "",
+      end_date: citizen.end_date?.split("T")[0] || "",
+    });
+    setIsEditCitizenDialogOpen(true);
+  };
+
+  const resetForm = () => {
+    setCitizenForm({
+      citizen_id: "",
+      role: "",
+      start_date: "",
+      end_date: "",
+    });
+  };
+
+  if (loading || isLoading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+
+  // ============================
+  // MAIN RENDER
+  // ============================
+  return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-8">
+            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-primary mb-2">
+                Address #{addressDetails?.address_id || "Details"}
+              </h1>
+              <p className="text-muted-foreground">Manage citizens linked to this address</p>
+            </div>
+          </div>
+
+          {/* Citizens Section */}
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-primary">Citizens</h2>
+              <p className="text-muted-foreground">Residents linked to this address</p>
+            </div>
+
+            {user?.role === "ADMIN" && (
+              <Dialog
+                open={isAddCitizenDialogOpen}
+                onOpenChange={(open) => {
+                  setIsAddCitizenDialogOpen(open);
+                  if (open) resetForm();
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-acc-blue hover:bg-acc-blue/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Citizen
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Add Citizen</DialogTitle>
+                    <DialogDescription>Link a citizen to this address</DialogDescription>
+                  </DialogHeader>
+
+                  {/* 👇 Updated form with citizen dropdown */}
+                  <form onSubmit={handleAddCitizen} className="space-y-4">
+                    <div>
+                      <Label>Select Citizen</Label>
+                      <Select
+                        value={citizenForm.citizen_id}
+                        onValueChange={(val) =>
+                          setCitizenForm({ ...citizenForm, citizen_id: val })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose a citizen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {citizenList.map((cit) => (
+                            <SelectItem key={cit.citizen_id} value={String(cit.citizen_id)}>
+                              {cit.full_name} (ID: {cit.citizen_id})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Role</Label>
+                      <Select
+                        value={citizenForm.role}
+                        onValueChange={(val) =>
+                          setCitizenForm({ ...citizenForm, role: val })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="owner">Owner</SelectItem>
+                          <SelectItem value="tenant">Tenant</SelectItem>
+                          <SelectItem value="family">Family</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Start Date</Label>
+                      <Input
+                        type="date"
+                        value={citizenForm.start_date}
+                        onChange={(e) =>
+                          setCitizenForm({ ...citizenForm, start_date: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label>End Date</Label>
+                      <Input
+                        type="date"
+                        value={citizenForm.end_date}
+                        onChange={(e) =>
+                          setCitizenForm({ ...citizenForm, end_date: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <DialogFooter>
+                      <Button type="submit">Add Citizen</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+
+          {/* Citizens Table (same as before) */}
+          <Card>
+            <CardHeader>
+              <CardTitle>All Citizens</CardTitle>
+              <CardDescription>List of linked citizens</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {citizens.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  No citizens linked yet
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Start</TableHead>
+                      <TableHead>End</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {citizens.map((cit) => (
+                      <TableRow key={cit.citizen_id}>
+                        <TableCell>{cit.citizen_id}</TableCell>
+                        <TableCell>{cit.citizen?.full_name || "-"}</TableCell>
+                        <TableCell>{cit.role}</TableCell>
+                        <TableCell>{cit.start_date?.split("T")[0] || "-"}</TableCell>
+                        <TableCell>{cit.end_date?.split("T")[0] || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon-sm"
+                              onClick={() => openEditCitizenDialog(cit)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="icon-sm"
+                              onClick={() => handleDeleteCitizen(cit.citizen_id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+    </main>
+  );
+}
