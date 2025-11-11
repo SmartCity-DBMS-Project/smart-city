@@ -12,14 +12,10 @@ import { Label } from "@/components/ui/label";
 export default function DashboardPage(){
     const { user, loading } = useUser();
     const router = useRouter();
-    const [showPasswordForm, setShowPasswordForm] = useState(false);
     const [passwordData, setPasswordData] = useState({
         newPassword: "",
         confirmNewPassword: ""
     });
-    const [passwordError, setPasswordError] = useState("");
-    const [passwordSuccess, setPasswordSuccess] = useState("");
-    const [isChangingPassword, setIsChangingPassword] = useState(false);
 
     useEffect(() => {
       if (!loading && !user) router.push("/login");
@@ -108,37 +104,65 @@ export default function DashboardPage(){
         { name: "Support", status: "Maintenance", color: "bg-yellow-100 text-yellow-800" },
     ];
 
+    const displayName = user.full_name || user.email || "User";
+    const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString() : null;
+
     return(
         <main className="flex flex-col items-center min-h-screen w-full">
-            {/* Header Section - Using homepage pattern with bg-background */}
-            <section className="w-full py-12 md:py-16 bg-background">
-                <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-                    <div className="mb-8">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                            <div>
-                                <h1 className="text-3xl font-bold text-primary mb-2">Dashboard</h1>
-                                <p className="text-muted-foreground">Welcome back, {user.full_name || user.email}!</p>
-                            </div>
-                            <div className="flex items-center space-x-4 bg-card border rounded-lg p-4">
-                                <div className="bg-acc-blue/10 p-3 rounded-full">
-                                    <User className="h-6 w-6 text-acc-blue" />
-                                </div>
-                                <div>
-                                    <p className="font-medium">{user.full_name || user.email}</p>
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                        <Mail className="h-4 w-4 mr-1" />
-                                        <span>{user.email}</span>
-                                    </div>
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                        <Shield className="h-4 w-4 mr-1" />
-                                        <span>{user.role}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            {/* Header / Hero */}
+      <section className="w-full py-10 md:py-14 bg-background">
+        <div className="container mx-auto max-w-6xl px-4 md:px-6">
+          <div className="flex flex-col gap-6 md:gap-8">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              {/* Left: Big Welcome + details below */}
+              <div className="min-w-0">
+                <h1 className="text-4xl md:text-5xl font-bold text-primary leading-tight">
+                  Welcome, <span className="">{displayName}!</span>
+                </h1>
+
+                {/* Details directly below the welcome message */}
+                <div className="mt-3 space-y-1">
+                  <p className="text-sm md:text-base text-muted-foreground">
+                    <span className="inline-flex items-center mr-2">
+                      <Mail className="h-5 w-5 mr-1" />
+                      <span className="text-lg">{user.email || "no-email@domain"}</span>
+                    </span>
+                  </p>
+
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    <span className="inline-flex items-center mr-2">
+                      <Shield className="h-5 w-5 mr-1" />
+                      <span className="text-lg">{user.role || "Member"}</span>
+                    </span>
+
+                    {lastLogin ? (
+                      <span className="ml-3 text-xs text-muted-foreground/90">
+                        Last signed in: <time dateTime={user.last_login}>{lastLogin}</time>
+                      </span>
+                    ) : null}
+                  </p>
                 </div>
-            </section>
+              </div>
+
+              {/* Right: compact avatar + small actions (no card) */}
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-acc-blue/10 flex items-center justify-center shrink-0">
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={`${displayName} avatar`}
+                      className="h-12 w-12 md:h-14 md:w-14 rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-6 w-6 text-acc-blue" />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    
 
             {/* Stats Section - Using homepage pattern with bg-card */}
             <section className="w-full py-12 bg-card">
@@ -200,77 +224,6 @@ export default function DashboardPage(){
                                             </Link>
                                         ))}
                                     </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="bg-card">
-                                <CardHeader>
-                                    <CardTitle>Change Password</CardTitle>
-                                    <CardDescription>Update your account security</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    {!showPasswordForm ? (
-                                        <Button onClick={() => setShowPasswordForm(true)} className="w-full">
-                                            Change Password
-                                        </Button>
-                                    ) : (
-                                        <form onSubmit={handlePasswordChange} className="space-y-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="newPassword">New Password</Label>
-                                                <Input
-                                                    id="newPassword"
-                                                    type="password"
-                                                    value={passwordData.newPassword}
-                                                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                                                    required
-                                                    minLength={6}
-                                                />
-                                            </div>
-                                            
-                                            <div className="space-y-2">
-                                                <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
-                                                <Input
-                                                    id="confirmNewPassword"
-                                                    type="password"
-                                                    value={passwordData.confirmNewPassword}
-                                                    onChange={(e) => setPasswordData({...passwordData, confirmNewPassword: e.target.value})}
-                                                    required
-                                                    minLength={6}
-                                                />
-                                            </div>
-                                            
-                                            {passwordError && (
-                                                <div className="text-red-500 text-sm">{passwordError}</div>
-                                            )}
-                                            
-                                            {passwordSuccess && (
-                                                <div className="text-green-500 text-sm">{passwordSuccess}</div>
-                                            )}
-                                            
-                                            <div className="flex space-x-2">
-                                                <Button 
-                                                    type="submit" 
-                                                    disabled={isChangingPassword}
-                                                    className="flex-1"
-                                                >
-                                                    {isChangingPassword ? "Changing..." : "Change Password"}
-                                                </Button>
-                                                <Button 
-                                                    type="button" 
-                                                    variant="outline" 
-                                                    onClick={() => {
-                                                        setShowPasswordForm(false);
-                                                        setPasswordError("");
-                                                        setPasswordSuccess("");
-                                                        setPasswordData({ newPassword: "", confirmNewPassword: "" });
-                                                    }}
-                                                    className="flex-1"
-                                                >
-                                                    Cancel
-                                                </Button>
-                                            </div>
-                                        </form>
-                                    )}
                                 </CardContent>
                             </Card>
 
