@@ -62,15 +62,15 @@ export default function ProfilePage() {
       return;
     }
     
-    if (passwordData.newPassword.length < 6) {
-      setPasswordError("Password must be at least 6 characters long");
+    if (passwordData.newPassword.length < 4) {
+      setPasswordError("Password must be at least 4 characters long");
       return;
     }
     
     setIsChangingPassword(true);
     
     try {
-      const response = await fetch(`http://localhost:8000/change-password/${profileData.email}`, {
+      const response = await fetch(`http://localhost:8000/auth/change-password/${profileData.email}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -233,7 +233,7 @@ export default function ProfilePage() {
                         value={passwordData.newPassword}
                         onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
                         required
-                        minLength={6}
+                        minLength={4}
                       />
                     </div>
                     
@@ -245,7 +245,7 @@ export default function ProfilePage() {
                         value={passwordData.confirmNewPassword}
                         onChange={(e) => setPasswordData({...passwordData, confirmNewPassword: e.target.value})}
                         required
-                        minLength={6}
+                        minLength={4}
                       />
                     </div>
                     

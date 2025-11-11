@@ -48,6 +48,9 @@ export default function ManageBuildingsPage() {
   const [formBuildingData, setBuildingFormData] = useState({
     building_name: "",
     building_type: "",
+    street: "",
+    zone: "",
+    pincode: "",
     category: "",
   });
 
@@ -65,7 +68,7 @@ export default function ManageBuildingsPage() {
   useEffect(() => {
     const filtered = searchTerm
       ? buildings.filter((b) =>
-          b.b_name?.toLowerCase().includes(searchTerm.toLowerCase())
+          b.building_name?.toLowerCase().includes(searchTerm.toLowerCase())
         )
       : buildings;
     setFilteredBuildings(filtered);
@@ -108,6 +111,9 @@ export default function ManageBuildingsPage() {
       const isCustomType = formBuildingData.building_type === "custom";
       const requestBody = {
         building_name: formBuildingData.building_name,
+        street: formBuildingData.street,
+        zone: formBuildingData.zone,
+        pincode: formBuildingData.pincode,
         ...(isCustomType
           ? {
               building_type: formBuildingData.custom_type_name,
@@ -138,6 +144,9 @@ export default function ManageBuildingsPage() {
     setBuildingFormData({
       building_name: "",
       building_type: "",
+      street: "",
+      zone: "",
+      pincode: "",
       category: "",
       custom_type_name: "",
     });
@@ -195,6 +204,48 @@ export default function ManageBuildingsPage() {
                           setBuildingFormData({
                             ...formBuildingData,
                             building_name: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Street</Label>
+                      <Input
+                        value={formBuildingData.street}
+                        onChange={(e) =>
+                          setBuildingFormData({
+                            ...formBuildingData,
+                            street: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Zone</Label>
+                      <Input
+                        value={formBuildingData.zone}
+                        onChange={(e) =>
+                          setBuildingFormData({
+                            ...formBuildingData,
+                            zone: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Pincode</Label>
+                      <Input
+                        value={formBuildingData.pincode}
+                        onChange={(e) =>
+                          setBuildingFormData({
+                            ...formBuildingData,
+                            pincode: e.target.value,
                           })
                         }
                         required
@@ -302,6 +353,9 @@ export default function ManageBuildingsPage() {
                     <TableRow>
                       <TableHead>ID</TableHead>
                       <TableHead>Name</TableHead>
+                      <TableHead>Street</TableHead>
+                      <TableHead>Zone</TableHead>
+                      <TableHead>Pincode</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Actions</TableHead>
@@ -309,9 +363,12 @@ export default function ManageBuildingsPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredBuildings.map((b) => (
-                      <TableRow key={b.build_id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/dashboard/manage-buildings/${b.build_id}`)}>
-                        <TableCell>{b.build_id}</TableCell>
-                        <TableCell>{b.b_name}</TableCell>
+                      <TableRow key={b.building_id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/dashboard/manage-buildings/${b.building_id}`)}>
+                        <TableCell>{b.building_id}</TableCell>
+                        <TableCell>{b.building_name}</TableCell>
+                        <TableCell>{b.street}</TableCell>
+                        <TableCell>{b.zone}</TableCell>
+                        <TableCell>{b.pincode}</TableCell>
                         <TableCell>{b.building_type?.type_name || "-"}</TableCell>
                         <TableCell>{b.building_type?.category || "-"}</TableCell>
                         <TableCell>

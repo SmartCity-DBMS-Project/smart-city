@@ -37,7 +37,7 @@ export default function BuildingDetailsPage({ params }) {
   const { user, loading } = useUser();
   const router = useRouter();
   const resolvedParams = use(params);
-  const buildingId = resolvedParams.building;
+  const building_id = resolvedParams.building;
 
   const [building, setBuilding] = useState(null);
   const [addresses, setAddresses] = useState([]);
@@ -49,11 +49,7 @@ export default function BuildingDetailsPage({ params }) {
   const [selectedAddress, setSelectedAddress] = useState(null);
 
   const [formAddressData, setFormAddressData] = useState({
-    street: "",
-    zone: "",
     flat_no: "",
-    city: "",
-    pincode: "",
   });
 
   useEffect(() => {
@@ -61,16 +57,16 @@ export default function BuildingDetailsPage({ params }) {
   }, [user, loading, router]);
 
   useEffect(() => {
-    if (user && buildingId) {
+    if (user && building_id) {
       fetchBuildingDetails();
       fetchBuildingAddresses();
     }
-  }, [user, buildingId]);
+  }, [user, building_id]);
 
   // 🔹 Fetch building details
   const fetchBuildingDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/buildings/${buildingId}`, {
+      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}`, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch building details");
@@ -85,7 +81,7 @@ export default function BuildingDetailsPage({ params }) {
   const fetchBuildingAddresses = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`http://localhost:8000/api/buildings/${buildingId}/addresses`, {
+      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}/addresses`, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch building addresses");
@@ -103,15 +99,9 @@ export default function BuildingDetailsPage({ params }) {
     e.preventDefault();
     try {
       const requestBody = {
-        building_id: parseInt(buildingId),
-        street: formAddressData.street,
-        zone: formAddressData.zone,
         flat_no: formAddressData.flat_no,
-        city: formAddressData.city,
-        pincode: formAddressData.pincode,
       };
-
-      const response = await fetch("http://localhost:8000/api/buildings/address", {
+      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}/addresses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -132,14 +122,9 @@ export default function BuildingDetailsPage({ params }) {
     e.preventDefault();
     try {
       const requestBody = {
-        street: formAddressData.street,
-        zone: formAddressData.zone,
         flat_no: formAddressData.flat_no,
-        city: formAddressData.city,
-        pincode: formAddressData.pincode,
       };
-
-      const response = await fetch(`http://localhost:8000/api/buildings/address/${selectedAddress.address_id}`, {
+      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}/addresses/${selectedAddress.address_id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -159,7 +144,7 @@ export default function BuildingDetailsPage({ params }) {
   const handleDeleteAddress = async (addressId) => {
     if (!confirm("Delete this address?")) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/buildings/address/${addressId}`, {
+      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}/addresses/${addressId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -174,22 +159,14 @@ export default function BuildingDetailsPage({ params }) {
   const openEditAddressDialog = (address) => {
     setSelectedAddress(address);
     setFormAddressData({
-      street: address.street || "",
-      zone: address.zone || "",
       flat_no: address.flat_no || "",
-      city: address.city || "",
-      pincode: address.pincode || "",
     });
     setIsEditAddressDialogOpen(true);
   };
 
   const resetAddressForm = () => {
     setFormAddressData({
-      street: "",
-      zone: "",
       flat_no: "",
-      city: "",
-      pincode: "",
     });
   };
 
@@ -218,7 +195,7 @@ export default function BuildingDetailsPage({ params }) {
             </Button>
             <div>
               <h1 className="text-3xl font-bold text-primary mb-2">
-                {building?.b_name || "Building Details"}
+                {building?.building_name || "Building Details"}
               </h1>
               <p className="text-muted-foreground">
                 Manage building addresses and residents
@@ -238,15 +215,27 @@ export default function BuildingDetailsPage({ params }) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <Label className="text-muted-foreground">Building ID</Label>
-                  <p className="font-medium">{building?.build_id || "-"}</p>
+                  <p className="font-medium">{building?.building_id || "-"}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Building Name</Label>
-                  <p className="font-medium">{building?.b_name || "-"}</p>
+                  <p className="font-medium">{building?.building_name || "-"}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Building Type</Label>
                   <p className="font-medium">{building?.building_type?.type_name || "-"}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Street</Label>
+                  <p className="font-medium">{building?.street || "-"}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Zone</Label>
+                  <p className="font-medium">{building?.zone || "-"}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Pincode</Label>
+                  <p className="font-medium">{building?.pincode || "-"}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Category</Label>
@@ -290,34 +279,6 @@ export default function BuildingDetailsPage({ params }) {
 
                   <form onSubmit={handleCreateAddress} className="space-y-4">
                     <div>
-                      <Label>Street</Label>
-                      <Input
-                        value={formAddressData.street}
-                        onChange={(e) =>
-                          setFormAddressData({
-                            ...formAddressData,
-                            street: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label>Zone</Label>
-                      <Input
-                        value={formAddressData.zone}
-                        onChange={(e) =>
-                          setFormAddressData({
-                            ...formAddressData,
-                            zone: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </div>
-
-                    <div>
                       <Label>Flat/Unit Number</Label>
                       <Input
                         value={formAddressData.flat_no}
@@ -325,34 +286,6 @@ export default function BuildingDetailsPage({ params }) {
                           setFormAddressData({
                             ...formAddressData,
                             flat_no: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label>City</Label>
-                      <Input
-                        value={formAddressData.city}
-                        onChange={(e) =>
-                          setFormAddressData({
-                            ...formAddressData,
-                            city: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label>Pincode</Label>
-                      <Input
-                        value={formAddressData.pincode}
-                        onChange={(e) =>
-                          setFormAddressData({
-                            ...formAddressData,
-                            pincode: e.target.value,
                           })
                         }
                         required
@@ -386,11 +319,7 @@ export default function BuildingDetailsPage({ params }) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>ID</TableHead>
-                      <TableHead>Street</TableHead>
-                      <TableHead>Zone</TableHead>
                       <TableHead>Flat/Unit</TableHead>
-                      <TableHead>City</TableHead>
-                      <TableHead>Pincode</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -398,11 +327,7 @@ export default function BuildingDetailsPage({ params }) {
                     {addresses.map((address) => (
                       <TableRow key={address.address_id}>
                         <TableCell>{address.address_id}</TableCell>
-                        <TableCell>{address.street}</TableCell>
-                        <TableCell>{address.zone}</TableCell>
                         <TableCell>{address.flat_no}</TableCell>
-                        <TableCell>{address.city}</TableCell>
-                        <TableCell>{address.pincode}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button
@@ -442,34 +367,6 @@ export default function BuildingDetailsPage({ params }) {
           </DialogHeader>
           <form onSubmit={handleUpdateAddress} className="space-y-4">
             <div>
-              <Label>Street</Label>
-              <Input
-                value={formAddressData.street}
-                onChange={(e) =>
-                  setFormAddressData({
-                    ...formAddressData,
-                    street: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-
-            <div>
-              <Label>Zone</Label>
-              <Input
-                value={formAddressData.zone}
-                onChange={(e) =>
-                  setFormAddressData({
-                    ...formAddressData,
-                    zone: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-
-            <div>
               <Label>Flat/Unit Number</Label>
               <Input
                 value={formAddressData.flat_no}
@@ -482,35 +379,6 @@ export default function BuildingDetailsPage({ params }) {
                 required
               />
             </div>
-
-            <div>
-              <Label>City</Label>
-              <Input
-                value={formAddressData.city}
-                onChange={(e) =>
-                  setFormAddressData({
-                    ...formAddressData,
-                    city: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-
-            <div>
-              <Label>Pincode</Label>
-              <Input
-                value={formAddressData.pincode}
-                onChange={(e) =>
-                  setFormAddressData({
-                    ...formAddressData,
-                    pincode: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-
             <DialogFooter>
               <Button type="submit">Update Address</Button>
             </DialogFooter>
