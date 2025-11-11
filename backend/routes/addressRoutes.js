@@ -11,7 +11,7 @@ const router = express.Router({ mergeParams: true });
 
 router.get("", handleGetAddressesByBuilding);
 router.post("", handleAddAddressToBuilding);
-router.put("/:address_id", handleUpdateAddress);
+router.patch("/:address_id", handleUpdateAddress);
 router.delete("/:address_id", handleDeleteAddress);
 
 // Citizen routes under each address

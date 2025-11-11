@@ -8,14 +8,10 @@ datasource db {
 }
 
 model address {
-  address_id      Int               @id
+  address_id      Int               @id @default(autoincrement())
   building_id     Int?
-  street          String?           @db.VarChar(100)
-  zone            String?           @db.VarChar(50)
   flat_no         String?           @db.VarChar(20)
-  city            String?           @db.VarChar(50)
-  pincode         String?           @db.VarChar(10)
-  building        building?         @relation(fields: [building_id], references: [build_id], onDelete: Cascade)
+  building        building?         @relation(fields: [building_id], references: [building_id], onDelete: Cascade)
   bill            bill[]
   citizen_address citizen_address[]
 
@@ -35,9 +31,12 @@ model bill {
 }
 
 model building {
-  build_id      Int            @id
-  b_name        String?        @db.VarChar(100)
+  building_id   Int            @id
+  building_name String?        @db.VarChar(100)
   type_id       Int?
+  street        String?        @db.VarChar(100)
+  zone          String?        @db.VarChar(100)
+  pincode       String?        @db.VarChar(10)
   address       address[]
   building_type building_type? @relation(fields: [type_id], references: [type_id], onDelete: Cascade)
 }

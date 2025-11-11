@@ -3,40 +3,16 @@ const prisma = require('../lib/prisma');
 async function handleGetBuildings(req, res){
   try {
     const allBuildings = await prisma.building.findMany({
-        include: { 
-            building_type: true,
-            address: {
-                select: {
-                    street: true,
-                    zone: true,
-                    city: true,
-                    pincode: true
-                }
-            }
+        select: { 
+          building_id: true,
+          building_type: true,
+          building_name: true,
+          street: true,
+          zone: true,
+          pincode: true
         }
     });
-    
-    // Remove duplicate addresses for each building
-    const buildingsWithUniqueAddresses = allBuildings.map(building => {
-        const uniqueAddresses = [];
-        const seenAddresses = new Set();
-        
-        building.address.forEach(addr => {
-            // Create a unique key for each address
-            const addressKey = `${addr.street}-${addr.zone}-${addr.city}-${addr.pincode}`;
-            if (!seenAddresses.has(addressKey)) {
-                seenAddresses.add(addressKey);
-                uniqueAddresses.push(addr);
-            }
-        });
-        
-        return {
-            ...building,
-            address: uniqueAddresses
-        };
-    });
-    
-    return res.status(200).json(buildingsWithUniqueAddresses);
+    return res.status(200).json(allBuildings);
     
   } catch (error) {
     console.error("Failed to fetch buildings:", error.message);
@@ -231,8 +207,26 @@ async function handleGetBuildingById(req, res) {
 
     const building_id = parseInt(req.params.building_id);
 
-    
-    return res.status(200).json({message: "Success"});
+    const building_data = await prisma.building.findUnique({
+      where:{
+        building_id: building_id,
+      },
+      select:{
+        building_id: true,
+        building_name: true,
+        street: true,
+        zone: true,
+        pincode: true,
+        building_type: {
+          select: {
+            type_name: true,
+            category: true,
+          },
+        },
+      }
+    })
+
+    return res.status(200).json(building_data);
   } catch(error) {
     console.log(`Failed`);
     return res.status(500).json({error: error.message});

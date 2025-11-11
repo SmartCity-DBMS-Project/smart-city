@@ -12,11 +12,7 @@ async function handleGetAddressesByBuilding(req, res) {
       },
       select: {
         address_id: true,
-        street: true,
-        zone: true,
         flat_no: true,
-        city: true,
-        pincode: true,
       },
     });
 
@@ -30,7 +26,15 @@ async function handleGetAddressesByBuilding(req, res) {
 async function handleAddAddressToBuilding(req, res) {
   try{
     console.log(`handleAddAddressToBuilding`);
-    return res.status(200).json({message: "Success"});
+    const building_id = parseInt(req.params.building_id);
+
+    const new_address = await prisma.address.create({
+        data:{
+            building_id: building_id,
+            flat_no: req.body.flat_no,
+        }
+    })
+    return res.status(200).json(new_address);
   } catch(error) {
     console.log(`Failed`);
     return res.status(500).json({error: error.message});
@@ -40,7 +44,36 @@ async function handleAddAddressToBuilding(req, res) {
 async function handleUpdateAddress(req, res) {
   try{
     console.log(`handleUpdateAddress`);
-    return res.status(200).json({message: "Success"});
+    const building_id = parseInt(req.params.building_id);
+    const address_id = parseInt(req.params.address_id);
+
+    const adds = await prisma.address.findUnique({
+        where: {
+            address_id: address_id,
+        },
+    });
+
+    let new_address;
+
+    if(!adds){
+        new_address = await prisma.address.create({
+        data:{
+            building_id: building_id,
+            flat_no: req.body.flat_no,
+        }
+    })
+    }
+    else{
+        new_address = await prisma.address.update({
+            where: {
+                address_id: address_id,
+            },
+            data: {
+                flat_no: req.body.flat_no,
+            }
+        })
+    }
+    return res.status(200).json(new_address);
   } catch(error) {
     console.log(`Failed`);
     return res.status(500).json({error: error.message});
@@ -50,6 +83,16 @@ async function handleUpdateAddress(req, res) {
 async function handleDeleteAddress(req, res) {
   try{
     console.log(`handleDeleteAddress`);
+
+    const building_id = parseInt(req.params.building_id);
+    const address_id = parseInt(req.params.address_id);
+
+    await prisma.address.delete({
+        where: {
+            building_id: building_id,
+            address_id: address_id,
+        }
+    })
     return res.status(200).json({message: "Success"});
   } catch(error) {
     console.log(`Failed`);
