@@ -1,4 +1,5 @@
 const express = require('express');
+const addressRouter = require('./addressRoutes');
 const {
     handleGetBuildings,
     handleGetBuildingsByType,
@@ -7,10 +8,6 @@ const {
     handleDeleteBuilding,
     handleAssignCitizensToBuilding,
     handleGetBuildingById,
-    handleGetAddressesByBuilding,
-    handleAddAddressToBuilding,
-    handleUpdateAddress,
-    handleDeleteAddress,
 } = require('../controllers/buildingController');
 
 const router = express.Router();
@@ -25,9 +22,6 @@ router.delete("/:building_id", handleDeleteBuilding);
 
 router.post("/:building_id/citizens", handleAssignCitizensToBuilding);
 
-router.get("/:building_id/addresses", handleGetAddressesByBuilding);
-router.post("/:building_id/addresses", handleAddAddressToBuilding);
-router.put("/:building_id/addresses/:address_id", handleUpdateAddress);
-router.delete("/:building_id/addresses/:address_id", handleDeleteAddress);
+router.use('/:building_id/addresses', addressRouter);
 
 module.exports = router;

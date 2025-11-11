@@ -81,7 +81,7 @@ export default function BuildingDetailsPage({ params }) {
     }
   };
 
-  // 🔹 Fetch building addresses
+  //  Fetch building addresses
   const fetchBuildingAddresses = async () => {
     try {
       setIsLoading(true);
