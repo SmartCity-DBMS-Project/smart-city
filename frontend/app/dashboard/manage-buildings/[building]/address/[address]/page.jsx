@@ -42,8 +42,12 @@ import { ArrowLeft, Plus, Edit, Trash2 } from "lucide-react";
 export default function AddressDetailsPage({ params }) {
   const { user, loading } = useUser();
   const router = useRouter();
-  // const resolvedParams = use(params);
-  const { building_id, address_id } = params;
+  const resolvedParams = use(params);
+  const { building, address } = resolvedParams || params || {};
+  
+  // Convert to proper IDs
+  const building_id = building ? parseInt(building) : null;
+  const address_id = address ? parseInt(address) : null;
 
   const [addressDetails, setAddressDetails] = useState(null);
   const [citizens, setCitizens] = useState([]);
@@ -70,27 +74,32 @@ export default function AddressDetailsPage({ params }) {
 
   // Fetch address & citizens once user is loaded
   useEffect(() => {
-    if (user && address_id) {
-      console.log("User context ->", { user, loading });
+    console.log("Params check ->", { building_id, address_id, resolvedParams, params });
+    if (user && building_id && address_id) {
+      console.log("Fetching data with ->", { building_id, address_id });
       fetchAddressDetails();
       fetchCitizens();
       fetchCitizenList(); // 👈 NEW: load global citizens
     }
-  }, [user, address_id]);
+  }, [user, building_id, address_id]);
 
   // ============================
   // Fetch Address Info
   // ============================
   const fetchAddressDetails = async () => {
     try {
+      console.log("Fetching address details with ->", { building_id, address_id });
       const res = await fetch(
         `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}`,
         { credentials: "include" }
       );
-      if (!res.ok) throw new Error("Failed to fetch address details");
+      console.log("Address details response ->", res.status);
+      if (!res.ok) throw new Error(`Failed to fetch address details: ${res.status} ${res.statusText}`);
       const data = await res.json();
+      console.log("Address details data ->", data);
       setAddressDetails(data);
     } catch (err) {
+      console.error("Error fetching address details:", err);
       setError(err.message);
     }
   };
@@ -101,14 +110,18 @@ export default function AddressDetailsPage({ params }) {
   const fetchCitizens = async () => {
     try {
       setIsLoading(true);
+      console.log("Fetching citizens with ->", { building_id, address_id });
       const res = await fetch(
         `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}/citizens`,
         { credentials: "include" }
       );
-      if (!res.ok) throw new Error("Failed to fetch citizens");
+      console.log("Citizens response ->", res.status);
+      if (!res.ok) throw new Error(`Failed to fetch citizens: ${res.status} ${res.statusText}`);
       const data = await res.json();
+      console.log("Citizens data ->", data);
       setCitizens(data);
     } catch (err) {
+      console.error("Error fetching citizens:", err);
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -120,14 +133,18 @@ export default function AddressDetailsPage({ params }) {
   // ============================
   const fetchCitizenList = async () => {
     try {
+      console.log("Fetching citizen list");
       const res = await fetch(`http://localhost:8000/api/citizens`, {
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to fetch citizen list");
+      console.log("Citizen list response ->", res.status);
+      if (!res.ok) throw new Error(`Failed to fetch citizen list: ${res.status} ${res.statusText}`);
       const data = await res.json();
+      console.log("Citizen list data ->", data);
       setCitizenList(data);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching citizen list:", err);
+      setError(err.message);
     }
   };
 
@@ -229,10 +246,21 @@ export default function AddressDetailsPage({ params }) {
     });
   };
 
+  // Check if params are valid
+  const areParamsValid = building_id && address_id && 
+    !isNaN(building_id) && !isNaN(address_id);
+
   if (loading || isLoading)
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
+        <p>Loading... (Params: building_id={building_id}, address_id={address_id})</p>
+      </div>
+    );
+
+  if (!areParamsValid)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-red-500">Invalid parameters: building_id or address_id is missing or invalid</p>
       </div>
     );
 
