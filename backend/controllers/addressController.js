@@ -106,15 +106,22 @@ async function handleGetAddressDetails(req, res) {
 
     const address_id = parseInt(req.params.address_id);
 
-    const address_details = await prisma.address.findMany({
+    const address_details = await prisma.address.findUnique({
         where: {
             address_id: address_id,
         },
         select: {
+            address_id: true,
             flat_no: true,
+            building_id: true,
         },
     })
-    return res.status(200).json({message: "Success"});
+    
+    if (!address_details) {
+        return res.status(404).json({error: "Address not found"});
+    }
+    
+    return res.status(200).json(address_details);
   } catch(error) {
     console.log(`Failed`);
     return res.status(500).json({error: error.message});
