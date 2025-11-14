@@ -88,51 +88,48 @@ async function handlePostBuilding(req, res) {
       return res.status(422).json({ message: "Type_id doesn't exist" });
     }
 
-    // Check if type exists first
-    const type = await prisma.building_type.findUnique({
-      where: { type_id: typeId },
+    // Run inside a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      
+      // 1. Check type exists
+      const type = await tx.building_type.findUnique({
+        where: { type_id: typeId },
+      });
+
+      if (!type) {
+        throw new Error("Invalid type_id");
+      }
+
+      // 2. Create building
+      const building = await tx.building.create({
+        data: {
+          building_name: req.body.building_name,
+          street: req.body.street,
+          zone: req.body.zone,
+          pincode: req.body.pincode,
+          type_id: typeId,
+        },
+      });
+
+      // 3. Create default address
+      const address = await tx.address.create({
+        data: {
+          building_id: building.building_id,
+          flat_no: "DEFAULT", // required because of unique constraint
+        },
+      });
+
+      return { building, address };
     });
 
-    if (!type) {
-      return res.status(422).json({ message: "Type_id doesn't exist" });
-    }
-
-    // Create building and address without a transaction since they're simple operations
-    const building = await prisma.building.create({
-      data: {
-        building_name: req.body.building_name,
-        street: req.body.street,
-        zone: req.body.zone,
-        pincode: req.body.pincode,
-        type_id: typeId,
-      },
-    });
-
-    // Use the building ID and timestamp to create a unique flat number
-    const uniqueFlatNo = `DEFAULT_${building.building_id}_${Date.now()}`;
-    
-    const address = await prisma.address.create({
-      data: {
-        building_id: building.building_id,
-        flat_no: uniqueFlatNo,
-      },
-    });
-
-    return res.status(201).json({ building, address });
+    return res.status(201).json(result);
 
   } catch (error) {
     console.error('Error creating building:', error);
-    // Provide more specific error messages based on the error type
-    if (error.code === 'P2002') {
-      return res.status(409).json({ error: 'A building with this information already exists' });
-    } else if (error.code === 'P2003') {
-      return res.status(400).json({ error: 'Invalid type_id provided' });
-    } else if (error.code === 'P2024') {
-      return res.status(408).json({ error: 'Database timeout - please try again' });
-    }
-    return res.status(500).json({ error: 'An unexpected error occurred while creating the building' });
+    return res.status(500).json({ error: error.message });
   }
 }
+
 
 async function handleGetBuildingTypes(req, res) {
   try {
