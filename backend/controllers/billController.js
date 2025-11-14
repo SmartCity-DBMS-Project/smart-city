@@ -115,6 +115,17 @@ async function createBill(req, res) {
       ...restData
     };
     
+    // Validate that address_id exists before creating bill
+    if (billData.address_id) {
+      const addressExists = await prisma.address.findUnique({
+        where: { address_id: parseInt(billData.address_id) }
+      });
+      
+      if (!addressExists) {
+        return res.status(400).json({ error: `Address with ID ${billData.address_id} does not exist` });
+      }
+    }
+    
     const bill = await prisma.bill.create({ 
       data: billData
     });
@@ -123,6 +134,10 @@ async function createBill(req, res) {
     return res.status(201).json(bill);
   } catch (error) {
     console.error('Error creating bill:', error);
+    // Provide more specific error messages for foreign key violations
+    if (error.code === 'P2003') {
+      return res.status(400).json({ error: 'Foreign key constraint failed. Please check that the address_id exists.' });
+    }
     return res.status(500).json({ error: error.message });
   }
 }
@@ -164,6 +179,17 @@ async function updateBill(req, res) {
       ...restData
     };
     
+    // Validate that address_id exists before updating bill
+    if (billData.address_id) {
+      const addressExists = await prisma.address.findUnique({
+        where: { address_id: parseInt(billData.address_id) }
+      });
+      
+      if (!addressExists) {
+        return res.status(400).json({ error: `Address with ID ${billData.address_id} does not exist` });
+      }
+    }
+    
     console.log('Transformed data for database:', billData);
     
     const bill = await prisma.bill.update({
@@ -175,6 +201,10 @@ async function updateBill(req, res) {
     return res.json(bill);
   } catch (error) {
     console.error('Error updating bill:', error);
+    // Provide more specific error messages for foreign key violations
+    if (error.code === 'P2003') {
+      return res.status(400).json({ error: 'Foreign key constraint failed. Please check that the address_id exists.' });
+    }
     return res.status(500).json({ error: error.message });
   }
 }
