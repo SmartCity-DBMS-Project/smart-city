@@ -82,6 +82,13 @@ async function handlePostBuilding(req, res) {
   try {
     console.log('Creating Building with data:', req.body);
 
+    // Generate a unique build_id (manual since not auto-increment)
+    const maxBuilding = await prisma.building.findFirst({
+      orderBy: { build_id: 'desc' },
+      select: { build_id: true }
+    });
+    const newBuildId = maxBuilding ? maxBuilding.build_id + 1 : 1;
+
     const { building_name, type_id: incomingTypeId, building_type, category } = req.body;
 
     let type_id = null;
@@ -100,8 +107,16 @@ async function handlePostBuilding(req, res) {
     } 
     // If frontend sends a building_type name — create new type
     else if (building_type) {
+      const maxType = await prisma.building_type.findFirst({
+        orderBy: { type_id: 'desc' },
+        select: { type_id: true }
+      });
+
+      const newTypeId = maxType ? maxType.type_id + 1 : 1;
+
       const newType = await prisma.building_type.create({
         data: {
+          type_id: newTypeId,
           type_name: building_type,
           category: category || null,
         }
@@ -116,7 +131,8 @@ async function handlePostBuilding(req, res) {
 
     // Create the building record
     const buildingData = {
-      building_name: building_name,
+      build_id: newBuildId,
+      b_name: building_name,
       type_id: type_id,
     };
 
@@ -161,7 +177,7 @@ async function handleDeleteBuilding(req, res){
     console.log('Deleting building ID:', req.params.building_id);
     
     await prisma.building.delete({
-      where: { building_id: parseInt(req.params.id) },
+      where: { build_id: parseInt(req.params.id) },
     });
     
     console.log('Building deleted successfully');
@@ -169,19 +185,6 @@ async function handleDeleteBuilding(req, res){
   } catch (error) {
     console.error('Error deleting building:', error);
     return res.status(500).json({ error: error.message });
-  }
-}
-
-async function handleAssignCitizensToBuilding(req, res) {
-  try{
-    const building_id = req.params.building_id;
-    console.log(`Adding citizen to building id: `, building_id);
-    const citizen_id = req.body.citizen_id;
-    const role = req.body.role;
-    return res.status(200).json({message: "Success"});
-  } catch(error) {
-    console.log(`Failed`);
-    return res.status(200).json({error: error.message});
   }
 }
 
@@ -224,6 +227,5 @@ module.exports = {
     handleGetBuildingsByType,
     handlePostBuilding,
     handleDeleteBuilding,
-    handleAssignCitizensToBuilding,
     handleGetBuildingById,
 }
