@@ -1,12 +1,16 @@
 const express = require('express');
 const {
     handleGetAllCitizens,
-    handlePostCitizen
+    handlePostCitizen,
+    handlePatchCitizen,
+    handleDeleteCitizen,
 } = require('../controllers/citizenController');
 
 const router = express.Router();
 
 router.get("/", handleGetAllCitizens);
-router.post("/citizen", handlePostCitizen);
+router.post("/", handlePostCitizen);
+router.patch("/:citizen_id", handlePatchCitizen);
+router.delete("/:citizen_id", handleDeleteCitizen);
 
 module.exports = router;
