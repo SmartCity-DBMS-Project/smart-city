@@ -139,8 +139,6 @@ async function handleGetCitizensByAddress(req, res) {
       select: {
         citizen_id: true,
         role: true,
-        start_date: true,
-        end_date: true,
         citizen: {
           select: {
             full_name: true,
@@ -183,8 +181,6 @@ async function handlePostCitizensByAddress(req, res) {
             citizen_id: citizen_id,
             address_id: address_id,
             role: req.body.role,
-            start_date: req.body.start_date || null,
-            end_date: null,
         }
     })
     return res.status(200).json(citizen_address_data);
@@ -198,7 +194,6 @@ async function handlePatchCitizensByAddress(req, res) {
   try {
     // citizen_id: "",
     // role: "",
-    // start_date: "",
     console.log(`handlePatchCitizensByAddress`)
 
     const address_id = parseInt(req.params.address_id);
@@ -220,8 +215,6 @@ async function handlePatchCitizensByAddress(req, res) {
         },
         data: {
             role: req.body.role,
-            start_date: req.body.start_date || null,
-            end_date: null,
         }
     })
     return res.status(200).json(citizen_address_data);
