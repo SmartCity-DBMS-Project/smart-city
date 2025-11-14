@@ -95,6 +95,59 @@ async function handlePostBuilding(req, res) {
       const type = await tx.building_type.findUnique({
         where: { type_id: typeId },
       });
+    // Generate a unique build_id (manual since not auto-increment)
+    const maxBuilding = await prisma.building.findFirst({
+      orderBy: { build_id: 'desc' },
+      select: { build_id: true }
+    });
+    const newBuildId = maxBuilding ? maxBuilding.build_id + 1 : 1;
+
+    const { building_name, type_id: incomingTypeId, building_type, category } = req.body;
+
+    let type_id = null;
+
+    // If frontend sends a numeric type_id — validate it
+    if (incomingTypeId) {
+      const existingType = await prisma.building_type.findUnique({
+        where: { type_id: Number(incomingTypeId) }
+      });
+
+      if (!existingType) {
+        return res.status(400).json({ error: 'Invalid type_id provided' });
+      }
+
+      type_id = existingType.type_id;
+    } 
+    // If frontend sends a building_type name — create new type
+    else if (building_type) {
+      const maxType = await prisma.building_type.findFirst({
+        orderBy: { type_id: 'desc' },
+        select: { type_id: true }
+      });
+
+      const newTypeId = maxType ? maxType.type_id + 1 : 1;
+
+      const newType = await prisma.building_type.create({
+        data: {
+          type_id: newTypeId,
+          type_name: building_type,
+          category: category || null,
+        }
+      });
+
+      console.log('Created new type:', newType);
+      type_id = newType.type_id;
+    } 
+    else {
+      return res.status(400).json({ error: 'Either type_id or building_type must be provided' });
+    }
+
+    // Create the building record
+    const buildingData = {
+      build_id: newBuildId,
+      b_name: building_name,
+      type_id: type_id,
+    };
 
       if (!type) {
         throw new Error("Invalid type_id");
@@ -161,7 +214,7 @@ async function handleDeleteBuilding(req, res){
     console.log('Deleting building ID:', req.params.building_id);
     
     await prisma.building.delete({
-      where: { building_id: parseInt(req.params.building_id) },
+      where: { build_id: parseInt(req.params.id) },
     });
     
     console.log('Building deleted successfully');
@@ -172,19 +225,6 @@ async function handleDeleteBuilding(req, res){
       return res.status(404).json({ error: 'Building not found' });
     }
     return res.status(500).json({ error: error.message });
-  }
-}
-
-async function handleAssignCitizensToBuilding(req, res) {
-  try{
-    const building_id = req.params.building_id;
-    console.log(`Adding citizen to building id: `, building_id);
-    const citizen_id = req.body.citizen_id;
-    const role = req.body.role;
-    return res.status(200).json({message: "Success"});
-  } catch(error) {
-    console.log(`Failed`);
-    return res.status(200).json({error: error.message});
   }
 }
 
@@ -227,6 +267,5 @@ module.exports = {
     handleGetBuildingsByType,
     handlePostBuilding,
     handleDeleteBuilding,
-    handleAssignCitizensToBuilding,
     handleGetBuildingById,
 }
