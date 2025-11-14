@@ -42,7 +42,7 @@ model building {
 }
 
 model building_type {
-  type_id   Int        @id
+  type_id   Int        @id @default(autoincrement())
   type_name String?    @unique @db.VarChar(50)
   category  String?    @db.VarChar(50)
   building  building[]

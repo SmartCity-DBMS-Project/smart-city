@@ -175,19 +175,6 @@ async function handleDeleteBuilding(req, res){
   }
 }
 
-async function handleAssignCitizensToBuilding(req, res) {
-  try{
-    const building_id = req.params.building_id;
-    console.log(`Adding citizen to building id: `, building_id);
-    const citizen_id = req.body.citizen_id;
-    const role = req.body.role;
-    return res.status(200).json({message: "Success"});
-  } catch(error) {
-    console.log(`Failed`);
-    return res.status(200).json({error: error.message});
-  }
-}
-
 async function handleGetBuildingById(req, res) {
   try{
     console.log(`handleGetBuildingById`);
@@ -227,6 +214,5 @@ module.exports = {
     handleGetBuildingsByType,
     handlePostBuilding,
     handleDeleteBuilding,
-    handleAssignCitizensToBuilding,
     handleGetBuildingById,
 }
