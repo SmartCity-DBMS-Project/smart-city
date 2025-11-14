@@ -82,70 +82,54 @@ async function handlePostBuilding(req, res) {
   try {
     console.log('Creating Building with data:', req.body);
 
-    // Generate a unique build_id (manual since not auto-increment)
-    const maxBuilding = await prisma.building.findFirst({
-      orderBy: { build_id: 'desc' },
-      select: { build_id: true }
-    });
-    const newBuildId = maxBuilding ? maxBuilding.build_id + 1 : 1;
+    const typeId = req.body.type_id;
 
-    const { building_name, type_id: incomingTypeId, building_type, category } = req.body;
-
-    let type_id = null;
-
-    // If frontend sends a numeric type_id — validate it
-    if (incomingTypeId) {
-      const existingType = await prisma.building_type.findUnique({
-        where: { type_id: Number(incomingTypeId) }
-      });
-
-      if (!existingType) {
-        return res.status(400).json({ error: 'Invalid type_id provided' });
-      }
-
-      type_id = existingType.type_id;
-    } 
-    // If frontend sends a building_type name — create new type
-    else if (building_type) {
-      const maxType = await prisma.building_type.findFirst({
-        orderBy: { type_id: 'desc' },
-        select: { type_id: true }
-      });
-
-      const newTypeId = maxType ? maxType.type_id + 1 : 1;
-
-      const newType = await prisma.building_type.create({
-        data: {
-          type_id: newTypeId,
-          type_name: building_type,
-          category: category || null,
-        }
-      });
-
-      console.log('Created new type:', newType);
-      type_id = newType.type_id;
-    } 
-    else {
-      return res.status(400).json({ error: 'Either type_id or building_type must be provided' });
+    if (!typeId) {
+      return res.status(422).json({ message: "Type_id doesn't exist" });
     }
 
-    // Create the building record
-    const buildingData = {
-      build_id: newBuildId,
-      b_name: building_name,
-      type_id: type_id,
-    };
+    // Run inside a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      
+      // 1. Check type exists
+      const type = await tx.building_type.findUnique({
+        where: { type_id: typeId },
+      });
 
-    const building = await prisma.building.create({ data: buildingData });
+      if (!type) {
+        throw new Error("Invalid type_id");
+      }
 
-    console.log('Building created successfully:', building);
-    return res.status(201).json(building);
+      // 2. Create building
+      const building = await tx.building.create({
+        data: {
+          building_name: req.body.building_name,
+          street: req.body.street,
+          zone: req.body.zone,
+          pincode: req.body.pincode,
+          type_id: typeId,
+        },
+      });
+
+      // 3. Create default address
+      const address = await tx.address.create({
+        data: {
+          building_id: building.building_id,
+          flat_no: "DEFAULT", // required because of unique constraint
+        },
+      });
+
+      return { building, address };
+    });
+
+    return res.status(201).json(result);
 
   } catch (error) {
     console.error('Error creating building:', error);
     return res.status(500).json({ error: error.message });
   }
 }
+
 
 async function handleGetBuildingTypes(req, res) {
   try {
@@ -177,13 +161,16 @@ async function handleDeleteBuilding(req, res){
     console.log('Deleting building ID:', req.params.building_id);
     
     await prisma.building.delete({
-      where: { build_id: parseInt(req.params.id) },
+      where: { building_id: parseInt(req.params.building_id) },
     });
     
     console.log('Building deleted successfully');
     return res.status(200).json({ message: 'Building deleted successfully' });
   } catch (error) {
     console.error('Error deleting building:', error);
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Building not found' });
+    }
     return res.status(500).json({ error: error.message });
   }
 }
