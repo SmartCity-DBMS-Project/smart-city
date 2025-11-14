@@ -82,48 +82,44 @@ async function handlePostBuilding(req, res) {
   try {
     console.log('Creating Building with data:', req.body);
 
-    const { building_name, type_id: incomingTypeId, building_type, category } = req.body;
+    const typeId = req.body.type_id;
 
-    let type_id = null;
-
-    // If frontend sends a numeric type_id — validate it
-    if (incomingTypeId) {
-      const existingType = await prisma.building_type.findUnique({
-        where: { type_id: Number(incomingTypeId) }
-      });
-
-      if (!existingType) {
-        return res.status(400).json({ error: 'Invalid type_id provided' });
-      }
-
-      type_id = existingType.type_id;
-    } 
-    // If frontend sends a building_type name — create new type
-    else if (building_type) {
-      const newType = await prisma.building_type.create({
-        data: {
-          type_name: building_type,
-          category: category || null,
-        }
-      });
-
-      console.log('Created new type:', newType);
-      type_id = newType.type_id;
-    } 
-    else {
-      return res.status(400).json({ error: 'Either type_id or building_type must be provided' });
+    if (!typeId) {
+      return res.status(422).json({ message: "Type_id doesn't exist" });
     }
 
-    // Create the building record
-    const buildingData = {
-      building_name: building_name,
-      type_id: type_id,
-    };
+    // Adding a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      
+      const type = await tx.building_type.findUnique({
+        where: { type_id: typeId },
+      });
 
-    const building = await prisma.building.create({ data: buildingData });
+      if (!type) {
+        return res.status(422).json({ message: "Type_id doesn't exist" });
+      }
 
-    console.log('Building created successfully:', building);
-    return res.status(201).json(building);
+      const building = await tx.building.create({
+        data: {
+          building_name: req.body.building_name,
+          street: req.body.street,
+          zone: req.body.zone,
+          pincode: req.body.pincode,
+          type_id: typeId,
+        },
+      });
+
+      const address = await tx.address.create({
+        data: {
+          building_id: building.building_id,
+          flat_no: "DEFAULT",
+        },
+      });
+
+      return { building, address };
+    });
+
+    return res.status(201).json(result);
 
   } catch (error) {
     console.error('Error creating building:', error);
