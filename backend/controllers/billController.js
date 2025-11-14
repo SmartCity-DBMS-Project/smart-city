@@ -66,15 +66,7 @@ async function viewBill(req, res) {
 async function createBill(req, res) {
   try {
     console.log('Creating bill with data:', req.body);
-    
-    // Generate a unique bill_id by finding the max bill_id and adding 1
-    const maxBill = await prisma.bill.findFirst({
-      orderBy: { bill_id: 'desc' },
-      select: { bill_id: true }
-    });
-    
-    const newBillId = maxBill ? maxBill.bill_id + 1 : 1;
-    
+        
     // Map frontend data to database schema
     // Frontend sends: { address_id, bill_type, amount, due_date, status }
     // Database expects: { bill_id, address_id, utility_id, units, amount, due_date, status }
@@ -91,33 +83,48 @@ async function createBill(req, res) {
       
       // If not found, create a new utility
       if (!utility) {
-        // Find max utility_id to generate new one
-        const maxUtility = await prisma.utility.findFirst({
-          orderBy: { utility_id: 'desc' },
-          select: { utility_id: true }
-        });
-        const newUtilityId = maxUtility ? maxUtility.utility_id + 1 : 1;
-        
-        utility = await prisma.utility.create({
-          data: {
-            utility_id: newUtilityId,
-            type: bill_type,
-            charge_per_unit: null,
-            dept_id: null
+        // Let's first check if a utility with this type already exists (case insensitive)
+        utility = await prisma.utility.findFirst({
+          where: { 
+            type: {
+              equals: bill_type,
+              mode: 'insensitive'
+            }
           }
         });
-        console.log('Created new utility:', utility);
+        
+        // If still not found, create a new utility
+        if (!utility) {
+          utility = await prisma.utility.create({
+            data: {
+              type: bill_type,
+              charge_per_unit: null,
+              dept_id: null
+            }
+          });
+          console.log('Created new utility:', utility);
+        }
       }
       
       utility_id = utility.utility_id;
     }
     
     const billData = {
-      bill_id: newBillId,
       utility_id: utility_id,
       units: null,
       ...restData
     };
+    
+    // Validate that address_id exists before creating bill
+    if (billData.address_id) {
+      const addressExists = await prisma.address.findUnique({
+        where: { address_id: parseInt(billData.address_id) }
+      });
+      
+      if (!addressExists) {
+        return res.status(400).json({ error: `Address with ID ${billData.address_id} does not exist` });
+      }
+    }
     
     const bill = await prisma.bill.create({ 
       data: billData
@@ -127,6 +134,10 @@ async function createBill(req, res) {
     return res.status(201).json(bill);
   } catch (error) {
     console.error('Error creating bill:', error);
+    // Provide more specific error messages for foreign key violations
+    if (error.code === 'P2003') {
+      return res.status(400).json({ error: 'Foreign key constraint failed. Please check that the address_id exists.' });
+    }
     return res.status(500).json({ error: error.message });
   }
 }
@@ -149,16 +160,8 @@ async function updateBill(req, res) {
       
       // If not found, create a new utility
       if (!utility) {
-        // Find max utility_id to generate new one
-        const maxUtility = await prisma.utility.findFirst({
-          orderBy: { utility_id: 'desc' },
-          select: { utility_id: true }
-        });
-        const newUtilityId = maxUtility ? maxUtility.utility_id + 1 : 1;
-        
         utility = await prisma.utility.create({
           data: {
-            utility_id: newUtilityId,
             type: bill_type,
             charge_per_unit: null,
             dept_id: null
@@ -176,6 +179,17 @@ async function updateBill(req, res) {
       ...restData
     };
     
+    // Validate that address_id exists before updating bill
+    if (billData.address_id) {
+      const addressExists = await prisma.address.findUnique({
+        where: { address_id: parseInt(billData.address_id) }
+      });
+      
+      if (!addressExists) {
+        return res.status(400).json({ error: `Address with ID ${billData.address_id} does not exist` });
+      }
+    }
+    
     console.log('Transformed data for database:', billData);
     
     const bill = await prisma.bill.update({
@@ -187,6 +201,10 @@ async function updateBill(req, res) {
     return res.json(bill);
   } catch (error) {
     console.error('Error updating bill:', error);
+    // Provide more specific error messages for foreign key violations
+    if (error.code === 'P2003') {
+      return res.status(400).json({ error: 'Foreign key constraint failed. Please check that the address_id exists.' });
+    }
     return res.status(500).json({ error: error.message });
   }
 }

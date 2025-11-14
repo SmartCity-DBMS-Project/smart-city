@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Receipt, Plus, Edit, Trash2, Search, IndianRupee, Calendar, MapPin, AlertCircle } from "lucide-react";
+import { Receipt, Plus, Edit, Trash2, Search, IndianRupee, Calendar, MapPin, AlertCircle, ArrowLeft } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 
@@ -187,7 +187,11 @@ export default function BillsPage() {
     <main className="flex flex-col items-center min-h-screen w-full">
       <section className="w-full py-12 md:py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-4 mb-8">
+            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
             <div>
               <h1 className="text-3xl font-bold text-primary mb-2">Bills Management</h1>
               <p className="text-muted-foreground">View and manage your utility bills</p>
@@ -292,15 +296,15 @@ export default function BillsPage() {
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle>All Bills</CardTitle>
-                  <CardDescription>A list of all bills in the system</CardDescription>
+                  <CardDescription>List of all bills in the system</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                   <Search className="h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search bills..."
+                    placeholder="Search Bills..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-sm"
+                    className="max-w-sm bg-background"
                   />
                 </div>
               </div>

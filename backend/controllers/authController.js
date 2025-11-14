@@ -26,8 +26,6 @@ async function handleLogin(req, res) {
           },
         });
 
-        console.log("flag1")
-
         let isAuthenticated = false;
 
         if(!loginInfo) {
@@ -96,11 +94,66 @@ async function handleLogout(req, res){
 
 async function handleMe(req, res) {
   try {
-    const data = getUser(req.cookies.token);
-    // Fetch data from database somehow
-    res.status(200).json(data);
+    // Get user data from JWT token
+    const tokenData = getUser(req.cookies.token);
+    
+    if (!tokenData || !tokenData.email) {
+      return res.status(401).json({error: "Not logged in"});
+    }
+    
+    // Fetch citizen details from database
+    const loginInfo = await prisma.login.findUnique({
+      where: {
+        email: tokenData.email,
+      },
+      include: {
+        citizen: {
+          include: {
+            citizen_address: {
+              include: {
+                address: {
+                  include: {
+                    building: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    if (!loginInfo || !loginInfo.citizen) {
+      return res.status(404).json({error: "User not found"});
+    }
+    
+    // Format the response data
+    const citizenData = {
+      email: loginInfo.email,
+      role: loginInfo.role,
+      citizen_id: loginInfo.citizen_id,
+      full_name: loginInfo.citizen.full_name,
+      phone: loginInfo.citizen.phone,
+      gender: loginInfo.citizen.gender,
+      dob: loginInfo.citizen.dob,
+      addresses: loginInfo.citizen.citizen_address.map(ca => ({
+        address_id: ca.address_id,
+        role: ca.role,
+        start_date: ca.start_date,
+        end_date: ca.end_date,
+        street: ca.address.street,
+        zone: ca.address.zone,
+        flat_no: ca.address.flat_no,
+        city: ca.address.city,
+        pincode: ca.address.pincode,
+        building_name: ca.address.building?.b_name
+      }))
+    };
+    
+    res.status(200).json(citizenData);
   } catch(error) {
-    res.status(401).json({error: "Not logged in"});
+    console.error("Error fetching user profile:", error);
+    res.status(500).json({error: "Failed to fetch profile data"});
   }
 }
 
