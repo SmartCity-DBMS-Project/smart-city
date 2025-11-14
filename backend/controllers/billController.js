@@ -66,15 +66,7 @@ async function viewBill(req, res) {
 async function createBill(req, res) {
   try {
     console.log('Creating bill with data:', req.body);
-    
-    // Generate a unique bill_id by finding the max bill_id and adding 1
-    const maxBill = await prisma.bill.findFirst({
-      orderBy: { bill_id: 'desc' },
-      select: { bill_id: true }
-    });
-    
-    const newBillId = maxBill ? maxBill.bill_id + 1 : 1;
-    
+        
     // Map frontend data to database schema
     // Frontend sends: { address_id, bill_type, amount, due_date, status }
     // Database expects: { bill_id, address_id, utility_id, units, amount, due_date, status }
@@ -91,29 +83,33 @@ async function createBill(req, res) {
       
       // If not found, create a new utility
       if (!utility) {
-        // Find max utility_id to generate new one
-        const maxUtility = await prisma.utility.findFirst({
-          orderBy: { utility_id: 'desc' },
-          select: { utility_id: true }
-        });
-        const newUtilityId = maxUtility ? maxUtility.utility_id + 1 : 1;
-        
-        utility = await prisma.utility.create({
-          data: {
-            utility_id: newUtilityId,
-            type: bill_type,
-            charge_per_unit: null,
-            dept_id: null
+        // Let's first check if a utility with this type already exists (case insensitive)
+        utility = await prisma.utility.findFirst({
+          where: { 
+            type: {
+              equals: bill_type,
+              mode: 'insensitive'
+            }
           }
         });
-        console.log('Created new utility:', utility);
+        
+        // If still not found, create a new utility
+        if (!utility) {
+          utility = await prisma.utility.create({
+            data: {
+              type: bill_type,
+              charge_per_unit: null,
+              dept_id: null
+            }
+          });
+          console.log('Created new utility:', utility);
+        }
       }
       
       utility_id = utility.utility_id;
     }
     
     const billData = {
-      bill_id: newBillId,
       utility_id: utility_id,
       units: null,
       ...restData
@@ -149,16 +145,8 @@ async function updateBill(req, res) {
       
       // If not found, create a new utility
       if (!utility) {
-        // Find max utility_id to generate new one
-        const maxUtility = await prisma.utility.findFirst({
-          orderBy: { utility_id: 'desc' },
-          select: { utility_id: true }
-        });
-        const newUtilityId = maxUtility ? maxUtility.utility_id + 1 : 1;
-        
         utility = await prisma.utility.create({
           data: {
-            utility_id: newUtilityId,
             type: bill_type,
             charge_per_unit: null,
             dept_id: null

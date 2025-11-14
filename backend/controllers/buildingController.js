@@ -82,13 +82,6 @@ async function handlePostBuilding(req, res) {
   try {
     console.log('Creating Building with data:', req.body);
 
-    // Generate a unique build_id (manual since not auto-increment)
-    const maxBuilding = await prisma.building.findFirst({
-      orderBy: { build_id: 'desc' },
-      select: { build_id: true }
-    });
-    const newBuildId = maxBuilding ? maxBuilding.build_id + 1 : 1;
-
     const { building_name, type_id: incomingTypeId, building_type, category } = req.body;
 
     let type_id = null;
@@ -107,16 +100,8 @@ async function handlePostBuilding(req, res) {
     } 
     // If frontend sends a building_type name — create new type
     else if (building_type) {
-      const maxType = await prisma.building_type.findFirst({
-        orderBy: { type_id: 'desc' },
-        select: { type_id: true }
-      });
-
-      const newTypeId = maxType ? maxType.type_id + 1 : 1;
-
       const newType = await prisma.building_type.create({
         data: {
-          type_id: newTypeId,
           type_name: building_type,
           category: category || null,
         }
@@ -131,8 +116,7 @@ async function handlePostBuilding(req, res) {
 
     // Create the building record
     const buildingData = {
-      build_id: newBuildId,
-      b_name: building_name,
+      building_name: building_name,
       type_id: type_id,
     };
 
@@ -177,7 +161,7 @@ async function handleDeleteBuilding(req, res){
     console.log('Deleting building ID:', req.params.building_id);
     
     await prisma.building.delete({
-      where: { build_id: parseInt(req.params.id) },
+      where: { building_id: parseInt(req.params.id) },
     });
     
     console.log('Building deleted successfully');
