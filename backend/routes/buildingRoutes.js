@@ -6,7 +6,6 @@ const {
     handlePostBuilding,
     handleGetBuildingTypes,
     handleDeleteBuilding,
-    handleAssignCitizensToBuilding,
     handleGetBuildingById,
 } = require('../controllers/buildingController');
 
@@ -19,8 +18,6 @@ router.get("/", handleGetBuildings);
 router.get("/:building_id", handleGetBuildingById);
 router.post("/", handlePostBuilding);  
 router.delete("/:building_id", handleDeleteBuilding);
-
-router.post("/:building_id/citizens", handleAssignCitizensToBuilding);
 
 router.use('/:building_id/addresses', addressRouter);
 
