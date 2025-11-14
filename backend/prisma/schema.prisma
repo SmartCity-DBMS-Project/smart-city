@@ -61,11 +61,9 @@ model citizen {
 model citizen_address {
   citizen_id Int
   address_id Int
-  role       String?   @db.VarChar(20)
-  start_date DateTime? @db.Date
-  end_date   DateTime? @db.Date
-  address    address   @relation(fields: [address_id], references: [address_id], onDelete: Cascade)
-  citizen    citizen   @relation(fields: [citizen_id], references: [citizen_id], onDelete: Cascade)
+  role       String? @db.VarChar(20)
+  address    address @relation(fields: [address_id], references: [address_id], onDelete: Cascade)
+  citizen    citizen @relation(fields: [citizen_id], references: [citizen_id], onDelete: Cascade)
 
   @@id([citizen_id, address_id])
 }

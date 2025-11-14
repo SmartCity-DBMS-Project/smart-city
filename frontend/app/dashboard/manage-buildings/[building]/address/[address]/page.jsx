@@ -62,8 +62,6 @@ export default function AddressDetailsPage({ params }) {
   const [citizenForm, setCitizenForm] = useState({
     citizen_id: "",
     role: "",
-    start_date: "",
-    end_date: "",
   });
 
   // Redirect unauthenticated users
@@ -163,8 +161,6 @@ export default function AddressDetailsPage({ params }) {
           body: JSON.stringify({
             citizen_id: Number(citizenForm.citizen_id),
             role: citizenForm.role,
-            start_date: citizenForm.start_date || null,
-            end_date: citizenForm.end_date || null,
           }),
         }
       );
@@ -191,8 +187,6 @@ export default function AddressDetailsPage({ params }) {
           credentials: "include",
           body: JSON.stringify({
             role: citizenForm.role,
-            start_date: citizenForm.start_date || null,
-            end_date: citizenForm.end_date || null,
           }),
         }
       );
@@ -231,8 +225,6 @@ export default function AddressDetailsPage({ params }) {
     setCitizenForm({
       citizen_id: citizen.citizen_id,
       role: citizen.role,
-      start_date: citizen.start_date?.split("T")[0] || "",
-      end_date: citizen.end_date?.split("T")[0] || "",
     });
     setIsEditCitizenDialogOpen(true);
   };
@@ -241,8 +233,6 @@ export default function AddressDetailsPage({ params }) {
     setCitizenForm({
       citizen_id: "",
       role: "",
-      start_date: "",
-      end_date: "",
     });
   };
 
@@ -356,30 +346,9 @@ export default function AddressDetailsPage({ params }) {
                         <SelectContent>
                           <SelectItem value="owner">Owner</SelectItem>
                           <SelectItem value="tenant">Tenant</SelectItem>
-                          <SelectItem value="family">Family</SelectItem>
+                          <SelectItem value="resident">Resident</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-
-                    <div>
-                      <Label>Start Date</Label>
-                      <Input
-                        type="date"
-                        value={citizenForm.start_date}
-                        onChange={(e) =>
-                          setCitizenForm({ ...citizenForm, start_date: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div>
-                      <Label>End Date</Label>
-                      <Input
-                        type="date"
-                        value={citizenForm.end_date}
-                        onChange={(e) =>
-                          setCitizenForm({ ...citizenForm, end_date: e.target.value })
-                        }
-                      />
                     </div>
 
                     <DialogFooter>
@@ -409,8 +378,6 @@ export default function AddressDetailsPage({ params }) {
                       <TableHead>ID</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Role</TableHead>
-                      <TableHead>Start</TableHead>
-                      <TableHead>End</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -420,8 +387,6 @@ export default function AddressDetailsPage({ params }) {
                         <TableCell>{cit.citizen_id}</TableCell>
                         <TableCell>{cit.citizen?.full_name || "-"}</TableCell>
                         <TableCell>{cit.role}</TableCell>
-                        <TableCell>{cit.start_date?.split("T")[0] || "-"}</TableCell>
-                        <TableCell>{cit.end_date?.split("T")[0] || "-"}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button
