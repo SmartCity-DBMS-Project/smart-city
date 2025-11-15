@@ -32,6 +32,8 @@ import { Plus, Edit, Trash2, MapPin, ArrowLeft } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { useUser } from "@/context/UserContext";
 import { useRouter, useSearchParams } from "next/navigation";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonLoader from "@/components/SkeletonLoader";
 
 export default function BuildingDetailsPage({ params }) {
   const { user, loading } = useUser();
@@ -170,12 +172,59 @@ export default function BuildingDetailsPage({ params }) {
     });
   };
 
-  if (loading || isLoading)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
-      </div>
-    );
+  if (loading) return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <div className="flex items-center gap-4 mb-8">
+            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <div>
+              <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
+              <div className="h-4 w-80 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+  
+      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <LoadingSpinner message="Loading building details..." />
+        </div>
+      </section>
+    </main>
+  );
+
+  if (isLoading) return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <div className="flex items-center gap-4 mb-8">
+            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-primary mb-2">
+                Building Details
+              </h1>
+              <p className="text-muted-foreground">
+                Manage building addresses and residents
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+  
+      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <LoadingSpinner message="Loading building information..." />
+        </div>
+      </section>
+    </main>
+  );
 
   if (error)
     return (
