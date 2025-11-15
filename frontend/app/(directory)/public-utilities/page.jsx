@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import * as Card from "@/components/ui/card";
-import { Building, GraduationCap, School, Hospital, Mailbox, Book, Lightbulb, Train, Shield, Loader2 } from "lucide-react";
+import { Building, GraduationCap, School, Hospital, Mailbox, Book, Lightbulb, Train, Shield } from "lucide-react";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonLoader from "@/components/SkeletonLoader";
 
 export default function Page(){
     const [utilities, setUtilities] = useState([]);
@@ -64,21 +66,18 @@ export default function Page(){
                 <section className="w-full py-12 md:py-16 bg-background">
                     <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                         <div className="mb-12 text-center">
-                            <h1 className="text-4xl font-bold text-primary mb-4">Public Utilities</h1>
+                            <div className="h-12 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mx-auto mb-4"></div>
                             <div className="w-24 h-1 bg-acc-blue mx-auto mb-6 rounded-full"></div>
-                            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                                Access essential services and facilities available throughout our city.
-                            </p>
+                            <div className="max-w-3xl mx-auto">
+                                <SkeletonLoader />
+                            </div>
                         </div>
                     </div>
                 </section>
 
                 <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
                     <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-                        <div className="flex flex-col items-center justify-center py-12">
-                            <Loader2 className="h-12 w-12 animate-spin text-acc-blue mb-4" />
-                            <p className="text-muted-foreground">Loading public utilities...</p>
-                        </div>
+                        <LoadingSpinner message="Loading public utilities..." />
                     </div>
                 </section>
             </main>

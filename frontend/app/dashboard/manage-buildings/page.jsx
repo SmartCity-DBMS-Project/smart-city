@@ -32,6 +32,8 @@ import { Plus, Search, MapPin } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonLoader from "@/components/SkeletonLoader";
 
 export default function ManageBuildingsPage() {
   const { user, loading } = useUser();
@@ -151,12 +153,56 @@ export default function ManageBuildingsPage() {
       custom_type_name: "",
     });
 
-  if (loading || isLoading)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
-      </div>
-    );
+  if (loading) return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <SkeletonLoader />
+            </div>
+            {user?.role === "ADMIN" && (
+              <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            )}
+          </div>
+        </div>
+      </section>
+  
+      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <LoadingSpinner message="Loading buildings..." />
+        </div>
+      </section>
+    </main>
+  );
+
+  if (isLoading) return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-primary mb-2">
+                Building Management
+              </h1>
+              <p className="text-muted-foreground">
+                Manage and organize building data
+              </p>
+            </div>
+            {user?.role === "ADMIN" && (
+              <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            )}
+          </div>
+        </div>
+      </section>
+  
+      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <LoadingSpinner message="Loading buildings..." />
+        </div>
+      </section>
+    </main>
+  );
 
   return (
     <main className="flex flex-col items-center min-h-screen w-full">

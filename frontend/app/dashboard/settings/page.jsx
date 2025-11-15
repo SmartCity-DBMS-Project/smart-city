@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft } from "lucide-react";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonLoader from "@/components/SkeletonLoader";
 
 export default function ProfilePage() {
   const { user, loading } = useUser();
@@ -100,7 +102,27 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading || loadingProfile) return <div className="flex items-center justify-center min-h-screen"><p>Loading...</p></div>;
+  if (loading || loadingProfile) return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div>
+              <SkeletonLoader />
+            </div>
+          </div>
+        </div>
+      </section>
+  
+      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <LoadingSpinner message="Loading profile settings..." />
+        </div>
+      </section>
+    </main>
+  );
+
   if (!user) return null;
 
   return (

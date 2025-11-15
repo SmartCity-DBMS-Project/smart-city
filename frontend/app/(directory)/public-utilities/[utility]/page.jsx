@@ -1,6 +1,8 @@
 'use client';
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonLoader from "@/components/SkeletonLoader";
 
 export default function utilityPage() {
     const [buildings, setBuildings] = useState([]);
@@ -40,23 +42,18 @@ export default function utilityPage() {
                 <section className="w-full py-12 md:py-16 bg-background">
                     <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                         <div className="mb-12 text-center">
-                            <h1 className="text-4xl font-bold text-primary mb-4">
-                                {utility ? utility.charAt(0).toUpperCase() + utility.slice(1) : 'Utility'}
-                            </h1>
+                            <div className="h-12 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mx-auto mb-4"></div>
                             <div className="w-24 h-1 bg-acc-blue mx-auto mb-6 rounded-full"></div>
-                            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                                Loading information about {utility} services...
-                            </p>
+                            <div className="max-w-3xl mx-auto">
+                                <SkeletonLoader />
+                            </div>
                         </div>
                     </div>
                 </section>
 
                 <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
                     <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-                        <div className="text-center">
-                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-acc-blue mb-4"></div>
-                            <p className="text-muted-foreground">Loading buildings...</p>
-                        </div>
+                        <LoadingSpinner message="Loading buildings..." />
                     </div>
                 </section>
             </main>
@@ -157,11 +154,6 @@ export default function utilityPage() {
                                                 {building.street}, {building.zone}
                                                 {building.pincode && ` - ${building.pincode}`}
                                             </p>
-                                            <div className="mt-4">
-                                                <button className="text-acc-blue hover:underline text-sm font-medium">
-                                                    View Details
-                                                </button>
-                                            </div>
                                         </div>
                                     </div>
                                 ))}
