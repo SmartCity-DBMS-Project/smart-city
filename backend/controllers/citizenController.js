@@ -21,19 +21,35 @@ async function handleGetAllCitizens(req, res) {
 
 async function handlePostCitizen(req, res) {
   try {
-    const { full_name, phone, gender, dob } = req.body;
+    const { full_name, phone, gender, dob, email } = req.body;
 
-    const citizen_data = await prisma.citizen.create({
-      data: {
-        full_name,
-        phone,
-        gender,
-        // convert incoming "YYYY-MM-DD" to a JS Date object
-        dob: dob ? new Date(dob) : null
-      }
+    // Transaction to create email when citizen is created
+    const result = await prisma.$transaction(async (txn) => {
+      const citizen = await prisma.citizen.create({
+        data: {
+          full_name,
+          phone,
+          gender,
+          dob: dob ? new Date(dob) : null,
+        },
+      });
+
+      const login = await prisma.login.create({
+        data: {
+          citizen_id: citizen.citizen_id,
+          email: email,
+          password: null,
+          role: 'CITIZEN',
+        },
+      });
+
+      return {
+        citizen,
+        login,
+      };
     });
 
-    return res.status(200).json(citizen_data);
+    return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to create citizen:', error);
     return res.status(500).json({ error: error.message });
