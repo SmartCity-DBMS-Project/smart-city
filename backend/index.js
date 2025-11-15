@@ -5,6 +5,7 @@ const buildingRouter = require('./routes/buildingRoutes');
 const billRouter = require('./routes/billRoutes');
 const authRouter = require('./routes/authRoutes');
 const citizenRouter = require('./routes/citizenRouter');
+const addressRouter = require('./routes/addressRoutes');
 
 const cors = require('cors');
 const cookieParser = require("cookie-parser");
@@ -37,6 +38,7 @@ app.use(express.json());
 
 app.use("/api/buildings", buildingRouter);
 app.use("/api/citizens", citizenRouter);
+app.use("/api/addresses", addressRouter);
 
 app.use("/api/bills", billRouter);
 

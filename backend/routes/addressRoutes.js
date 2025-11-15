@@ -1,5 +1,6 @@
 const express = require('express');
 const {
+    handleGetAllAddresses,
     handleGetAddressesByBuilding,
     handleAddAddressToBuilding,
     handleUpdateAddress,
@@ -12,6 +13,8 @@ const {
 } = require('../controllers/addressController');
 
 const router = express.Router({ mergeParams: true });
+
+router.get("/all", handleGetAllAddresses);
 
 // Get all addresses for a building
 router.get("", handleGetAddressesByBuilding);
