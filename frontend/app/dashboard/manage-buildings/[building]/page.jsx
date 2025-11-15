@@ -45,13 +45,23 @@ export default function BuildingDetailsPage({ params }) {
   const [addresses, setAddresses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [buildingTypes, setBuildingTypes] = useState([]);
 
   const [isCreateAddressDialogOpen, setIsCreateAddressDialogOpen] = useState(false);
   const [isEditAddressDialogOpen, setIsEditAddressDialogOpen] = useState(false);
+  const [isEditBuildingDialogOpen, setIsEditBuildingDialogOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
 
   const [formAddressData, setFormAddressData] = useState({
     flat_no: "",
+  });
+
+  const [formBuildingData, setFormBuildingData] = useState({
+    building_name: "",
+    building_type: "",
+    street: "",
+    zone: "",
+    pincode: "",
   });
 
   useEffect(() => {
@@ -62,8 +72,22 @@ export default function BuildingDetailsPage({ params }) {
     if (user && building_id) {
       fetchBuildingDetails();
       fetchBuildingAddresses();
+      fetchBuildingTypes();
     }
   }, [user, building_id]);
+
+  // 🔹 Fetch building types
+  const fetchBuildingTypes = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/buildings/building-type", {
+        credentials: "include",
+      });
+      const data = await res.json();
+      setBuildingTypes(data);
+    } catch (err) {
+      console.error("Error fetching types:", err);
+    }
+  };
 
   // 🔹 Fetch building details
   const fetchBuildingDetails = async () => {
@@ -74,6 +98,15 @@ export default function BuildingDetailsPage({ params }) {
       if (!response.ok) throw new Error("Failed to fetch building details");
       const data = await response.json();
       setBuilding(data);
+      
+      // Set form data for editing
+      setFormBuildingData({
+        building_name: data.building_name || "",
+        building_type: data.building_type?.type_id?.toString() || "",
+        street: data.street || "",
+        zone: data.zone || "",
+        pincode: data.pincode || "",
+      });
     } catch (err) {
       setError(err.message);
     }
@@ -93,6 +126,49 @@ export default function BuildingDetailsPage({ params }) {
       setError(err.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // 🔹 Update building
+  const handleUpdateBuilding = async (e) => {
+    e.preventDefault();
+    try {
+      const requestBody = {
+        building_name: formBuildingData.building_name,
+        street: formBuildingData.street,
+        zone: formBuildingData.zone,
+        pincode: formBuildingData.pincode,
+        type_id: Number(formBuildingData.building_type),
+      };
+
+      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) throw new Error("Failed to update building");
+      await fetchBuildingDetails();
+      setIsEditBuildingDialogOpen(false);
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  // 🔹 Delete building
+  const handleDeleteBuilding = async () => {
+    if (!confirm("Are you sure you want to delete this building? This action cannot be undone.")) return;
+    try {
+      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete building");
+      router.push("/dashboard/manage-buildings");
+    } catch (err) {
+      alert("Error deleting building: " + err.message);
     }
   };
 
@@ -250,6 +326,24 @@ export default function BuildingDetailsPage({ params }) {
                 Manage building addresses and residents
               </p>
             </div>
+            {user?.role === "ADMIN" && (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsEditBuildingDialogOpen(true)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Building
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleDeleteBuilding}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Building
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Building Info Card */}
@@ -382,14 +476,20 @@ export default function BuildingDetailsPage({ params }) {
                             <Button
                               variant="outline"
                               size="icon-sm"
-                              onClick={() => openEditAddressDialog(address)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditAddressDialog(address);
+                              }}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="destructive"
                               size="icon-sm"
-                              onClick={() => handleDeleteAddress(address.address_id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteAddress(address.address_id);
+                              }}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -430,6 +530,101 @@ export default function BuildingDetailsPage({ params }) {
             </div>
             <DialogFooter>
               <Button type="submit">Update Address</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ✏️ Edit Building Dialog */}
+      <Dialog open={isEditBuildingDialogOpen} onOpenChange={setIsEditBuildingDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Building</DialogTitle>
+            <DialogDescription>
+              Update building information
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdateBuilding} className="space-y-4">
+            <div>
+              <Label>Building Name</Label>
+              <Input
+                value={formBuildingData.building_name}
+                onChange={(e) =>
+                  setFormBuildingData({
+                    ...formBuildingData,
+                    building_name: e.target.value,
+                  })
+                }
+                required
+              />
+            </div>
+            <div>
+              <Label>Street</Label>
+              <Input
+                value={formBuildingData.street}
+                onChange={(e) =>
+                  setFormBuildingData({
+                    ...formBuildingData,
+                    street: e.target.value,
+                  })
+                }
+                required
+              />
+            </div>
+            <div>
+              <Label>Zone</Label>
+              <Input
+                value={formBuildingData.zone}
+                onChange={(e) =>
+                  setFormBuildingData({
+                    ...formBuildingData,
+                    zone: e.target.value,
+                  })
+                }
+                required
+              />
+            </div>
+            <div>
+              <Label>Pincode</Label>
+              <Input
+                value={formBuildingData.pincode}
+                onChange={(e) =>
+                  setFormBuildingData({
+                    ...formBuildingData,
+                    pincode: e.target.value,
+                  })
+                }
+                required
+              />
+            </div>
+            <div>
+              <Label>Building Type</Label>
+              <Select
+                value={formBuildingData.building_type}
+                onValueChange={(value) =>
+                  setFormBuildingData({
+                    ...formBuildingData,
+                    building_type: value,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {buildingTypes.map((type) => (
+                    <SelectItem
+                      key={type.type_id}
+                      value={type.type_id.toString()}
+                    >
+                      {type.type_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button type="submit">Update Building</Button>
             </DialogFooter>
           </form>
         </DialogContent>
