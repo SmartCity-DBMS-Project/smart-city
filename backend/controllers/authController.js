@@ -1,7 +1,7 @@
 const prisma = require('../lib/prisma');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { formatDOB } = require("../../frontend/.next/utils/formatDOB")
+const { formatDOB } = require("../utils/formatDOB")
 const { setUser, getUser } = require('../services/authServices')
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret-key';
