@@ -123,7 +123,7 @@ export default function DashboardPage(){
     const quickActions = [
         { name: "New Request", icon: <FileText className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/requests", role: "CITIZEN" },
         { name: "Pay Bills", icon: <CreditCard className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/bills", role: "CITIZEN" },
-        { name: "Notifications", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" />, slug: "#", role: "ALL" },
+        { name: "Notifications", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/notifications", role: "ALL" },
         { name: "Settings", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/settings", role: "ALL" },
         { name: "Manage Building", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/manage-buildings", role: "ADMIN" },
         { name: "Manage Citizens", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/manage-citizens", role: "ADMIN" },
