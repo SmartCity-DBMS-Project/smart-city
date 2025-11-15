@@ -37,7 +37,7 @@ async function handleGetBuildingsByType(req, res){
         },
         select: {
           building_id: true,
-          building_type: true,
+          building_name: true,
           street: true,
           zone: true,
           pincode: true,
@@ -45,26 +45,6 @@ async function handleGetBuildingsByType(req, res){
     });
 
     console.log(buildings);
-    
-    // Remove duplicate addresses for each building
-    // const buildingsWithUniqueAddresses = buildings.map(building => {
-    //     const uniqueAddresses = [];
-    //     const seenAddresses = new Set();
-    //     
-    //     building.address.forEach(addr => {
-    //         // Create a unique key for each address
-    //         const addressKey = `${addr.street}-${addr.zone}-${addr.city}-${addr.pincode}`;
-    //         if (!seenAddresses.has(addressKey)) {
-    //             seenAddresses.add(addressKey);
-    //             uniqueAddresses.push(addr);
-    //         }
-    //     });
-    //     
-    //     return {
-    //         ...building,
-    //         address: uniqueAddresses
-    //     };
-    // });
       
     return res.status(200).json(buildings);
 
