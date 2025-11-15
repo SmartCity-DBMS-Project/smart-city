@@ -7,6 +7,9 @@ async function handleGetAllCitizens(req, res) {
         select: {
             citizen_id: true,
             full_name: true,
+            phone: true,
+            gender: true,
+            dob: true,
         },
     })
     return res.status(200).json(citizen_data);
