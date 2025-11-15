@@ -51,7 +51,6 @@ async function handlePatchCitizen(req, res) {
         citizen_id: citizen_id,
       },
       data: {
-        citizen_id,
         full_name,
         phone,
         gender,
@@ -62,7 +61,7 @@ async function handlePatchCitizen(req, res) {
 
     return res.status(200).json(new_citizen_data);
   } catch (error) {
-    console.error('Failed to create citizen:', error);
+    console.error('Failed to update citizen:', error);
     return res.status(500).json({ error: error.message });
   }
 }
@@ -77,9 +76,9 @@ async function handleDeleteCitizen(req, res) {
       },
     });
 
-    return res.status(200).json({message: "Successfully deleted: ", citizen_id});
+    return res.status(200).json({message: "Successfully deleted citizen", citizen_id});
   } catch (error) {
-    console.error('Failed to create citizen:', error);
+    console.error('Failed to delete citizen:', error);
     return res.status(500).json({ error: error.message });
   }
 }
