@@ -18,6 +18,10 @@ export default function DashboardPage(){
         newPassword: "",
         confirmNewPassword: ""
     });
+    const [passwordError, setPasswordError] = useState("");
+    const [passwordSuccess, setPasswordSuccess] = useState("");
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [showPasswordForm, setShowPasswordForm] = useState(false);
 
     useEffect(() => {
       if (!loading && !user) router.push("/login");
@@ -117,12 +121,13 @@ export default function DashboardPage(){
     ];
 
     const quickActions = [
-        { name: "New Request", icon: <FileText className="h-6 w-6 mb-2 text-acc-blue" />, slug: "#" },
-        { name: "Pay Bills", icon: <CreditCard className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/bills" },
-        { name: "Notifications", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" />, slug: "#" },
-        { name: "Settings", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/settings" },
-        { name: "Manage Building", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/manage-buildings" },
-        { name: "Manage Citizens", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/manage-citizens" },
+        { name: "New Request", icon: <FileText className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/requests", role: "CITIZEN" },
+        { name: "Pay Bills", icon: <CreditCard className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/bills", role: "CITIZEN" },
+        { name: "Notifications", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" />, slug: "#", role: "ALL" },
+        { name: "Settings", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/settings", role: "ALL" },
+        { name: "Manage Building", icon: <Bell className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/manage-buildings", role: "ADMIN" },
+        { name: "Manage Citizens", icon: <Settings className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/manage-citizens", role: "ADMIN" },
+        { name: "Manage Requests", icon: <FileText className="h-6 w-6 mb-2 text-acc-blue" />, slug: "/dashboard/requests", role: "ADMIN" },
     ];
 
     const systemStatus = [
@@ -133,6 +138,7 @@ export default function DashboardPage(){
 
     const displayName = user.full_name || user.email || "User";
     const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString() : null;
+    const actionDisplayRole = user.role;
 
     return(
         <main className="flex flex-col items-center min-h-screen w-full">
@@ -241,18 +247,19 @@ export default function DashboardPage(){
                                 <CardContent>
                                     <div className="grid grid-cols-2 gap-3">
                                         {quickActions.map((action, index) => (
-                                            <Link
-                                                href={action.slug}
-                                                key={index} 
-                                                className="flex flex-col items-center justify-center p-4 rounded-lg border border-border hover:bg-accent transition-colors bg-background"
-                                            >
-                                                {action.icon}
-                                                <span className="text-sm font-medium">{action.name}</span>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                            (action.role === actionDisplayRole || action.role === "ALL") && (                                                            <Link
+                                                                href={action.slug}
+                                                                key={index}
+                                                                className="flex flex-col items-center justify-center p-4 rounded-lg border border-border hover:bg-accent transition-colors bg-background"
+                                                            >
+                                                                {action.icon}
+                                                                <span className="text-sm font-medium">{action.name}</span>
+                                                            </Link>
+                                                            )
+                                                        ))}
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
 
                             <Card className="bg-card">
                                 <CardHeader>
