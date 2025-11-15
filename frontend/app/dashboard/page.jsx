@@ -8,6 +8,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonLoader from "@/components/SkeletonLoader";
 
 export default function DashboardPage(){
     const { user, loading } = useUser();
@@ -78,7 +80,30 @@ export default function DashboardPage(){
         }
     };
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) return (
+        <main className="flex flex-col items-center min-h-screen w-full">
+            <section className="w-full py-12 md:py-16 bg-background">
+                <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+                    <div className="flex flex-col gap-6 md:gap-8">
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                            <div className="min-w-0">
+                                <SkeletonLoader />
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="h-14 w-14 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        
+            <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+                <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+                    <LoadingSpinner message="Loading your dashboard..." />
+                </div>
+            </section>
+        </main>
+    );
     if (!user) return null; // while redirecting
 
     const stats = [

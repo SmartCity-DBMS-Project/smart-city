@@ -32,6 +32,8 @@ import { Plus, Search, MapPin } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonLoader from "@/components/SkeletonLoader";
 
 export default function ManageBuildingsPage() {
   const { user, loading } = useUser();
@@ -44,6 +46,9 @@ export default function ManageBuildingsPage() {
   const [error, setError] = useState(null);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  // Temporary fix for missing state variables
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedBuilding, setSelectedBuilding] = useState(null);
   const [buildingTypes, setBuildingTypes] = useState([]);
   const [formBuildingData, setBuildingFormData] = useState({
     building_name: "",
@@ -140,6 +145,29 @@ export default function ManageBuildingsPage() {
     }
   };
 
+  // 🔹 Delete building
+  const handleDeleteBuilding = async (buildingId) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/buildings/${buildingId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete building");
+      await fetchBuildings(); // Refresh the buildings list
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  // Temporary fix for missing function
+  // 🔹 Update building
+  const handleUpdateBuilding = async (e) => {
+    e.preventDefault();
+    // This function is no longer used but kept to prevent errors
+    console.log("Update building function called but not implemented");
+  };
+
   const resetBuildingForm = () =>
     setBuildingFormData({
       building_name: "",
@@ -151,12 +179,56 @@ export default function ManageBuildingsPage() {
       custom_type_name: "",
     });
 
-  if (loading || isLoading)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
-      </div>
-    );
+  if (loading) return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <SkeletonLoader />
+            </div>
+            {user?.role === "ADMIN" && (
+              <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            )}
+          </div>
+        </div>
+      </section>
+  
+      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <LoadingSpinner message="Loading buildings..." />
+        </div>
+      </section>
+    </main>
+  );
+
+  if (isLoading) return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-primary mb-2">
+                Building Management
+              </h1>
+              <p className="text-muted-foreground">
+                Manage and organize building data
+              </p>
+            </div>
+            {user?.role === "ADMIN" && (
+              <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            )}
+          </div>
+        </div>
+      </section>
+  
+      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <LoadingSpinner message="Loading buildings..." />
+        </div>
+      </section>
+    </main>
+  );
 
   return (
     <main className="flex flex-col items-center min-h-screen w-full">
@@ -358,7 +430,6 @@ export default function ManageBuildingsPage() {
                       <TableHead>Pincode</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Category</TableHead>
-                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -371,12 +442,6 @@ export default function ManageBuildingsPage() {
                         <TableCell>{b.pincode}</TableCell>
                         <TableCell>{b.building_type?.type_name || "-"}</TableCell>
                         <TableCell>{b.building_type?.category || "-"}</TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm">
-                            <MapPin className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -386,6 +451,260 @@ export default function ManageBuildingsPage() {
           </Card>
         </div>
       </section>
+
+      {/* Add Building Dialog */}
+      {user?.role === "ADMIN" && (
+        <Dialog
+          open={isCreateDialogOpen}
+          onOpenChange={(open) => {
+            setIsCreateDialogOpen(open);
+            if (open) resetBuildingForm();
+          }}
+        >
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Add Building</DialogTitle>
+              <DialogDescription>
+                Create a new building entry
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleCreateBuilding} className="space-y-4">
+              <div>
+                <Label>Building Name</Label>
+                <Input
+                  value={formBuildingData.building_name}
+                  onChange={(e) =>
+                    setBuildingFormData({
+                      ...formBuildingData,
+                      building_name: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Street</Label>
+                <Input
+                  value={formBuildingData.street}
+                  onChange={(e) =>
+                    setBuildingFormData({
+                      ...formBuildingData,
+                      street: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Zone</Label>
+                <Input
+                  value={formBuildingData.zone}
+                  onChange={(e) =>
+                    setBuildingFormData({
+                      ...formBuildingData,
+                      zone: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Pincode</Label>
+                <Input
+                  value={formBuildingData.pincode}
+                  onChange={(e) =>
+                    setBuildingFormData({
+                      ...formBuildingData,
+                      pincode: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Building Type</Label>
+                <Select
+                  value={formBuildingData.building_type}
+                  onValueChange={(value) =>
+                    setBuildingFormData({
+                      ...formBuildingData,
+                      building_type: value,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {buildingTypes.map((type) => (
+                      <SelectItem
+                        key={type.type_id}
+                        value={type.type_id.toString()}
+                      >
+                        {type.type_name}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="custom">+ Custom Type</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Show extra fields if "Custom Type" is selected */}
+              {formBuildingData.building_type === "custom" && (
+                <>
+                  <div>
+                    <Label>Type Name</Label>
+                    <Input
+                      value={formBuildingData.custom_type_name || ""}
+                      onChange={(e) =>
+                        setBuildingFormData({
+                          ...formBuildingData,
+                          custom_type_name: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Category</Label>
+                    <Input
+                      value={formBuildingData.category || ""}
+                      onChange={(e) =>
+                        setBuildingFormData({
+                          ...formBuildingData,
+                          category: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
+              <DialogFooter>
+                <Button type="submit">Add Building</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Building Dialog */}
+      {user?.role === "ADMIN" && (
+        <Dialog
+          open={isEditDialogOpen}
+          onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            if (!open) {
+              resetBuildingForm();
+              setSelectedBuilding(null);
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Edit Building</DialogTitle>
+              <DialogDescription>
+                Update building information
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleUpdateBuilding} className="space-y-4">
+              <div>
+                <Label>Building Name</Label>
+                <Input
+                  value={formBuildingData.building_name}
+                  onChange={(e) =>
+                    setBuildingFormData({
+                      ...formBuildingData,
+                      building_name: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Street</Label>
+                <Input
+                  value={formBuildingData.street}
+                  onChange={(e) =>
+                    setBuildingFormData({
+                      ...formBuildingData,
+                      street: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Zone</Label>
+                <Input
+                  value={formBuildingData.zone}
+                  onChange={(e) =>
+                    setBuildingFormData({
+                      ...formBuildingData,
+                      zone: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Pincode</Label>
+                <Input
+                  value={formBuildingData.pincode}
+                  onChange={(e) =>
+                    setBuildingFormData({
+                      ...formBuildingData,
+                      pincode: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Building Type</Label>
+                <Select
+                  value={formBuildingData.building_type}
+                  onValueChange={(value) =>
+                    setBuildingFormData({
+                      ...formBuildingData,
+                      building_type: value,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {buildingTypes.map((type) => (
+                      <SelectItem
+                        key={type.type_id}
+                        value={type.type_id.toString()}
+                      >
+                        {type.type_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <DialogFooter>
+                <Button type="submit">Update Building</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </main>
   );
 }

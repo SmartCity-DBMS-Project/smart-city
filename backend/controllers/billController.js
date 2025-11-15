@@ -225,9 +225,56 @@ async function deleteBill(req, res) {
   }
 }
 
+// New function to fetch all utility types
+async function getUtilityTypes(req, res) {
+  try {
+    const utilities = await prisma.utility.findMany({
+      select: {
+        utility_id: true,
+        type: true
+      }
+    });
+    
+    return res.status(200).json(utilities);
+  } catch (error) {
+    console.error('Error fetching utility types:', error);
+    return res.status(500).json({ error: error.message });
+  }
+}
+
+// New function to fetch all addresses
+async function getAddressList(req, res) {
+  try {
+    const addresses = await prisma.address.findMany({
+      select: {
+        address_id: true,
+        flat_no: true,
+        building: {
+          select: {
+            building_name: true
+          }
+        }
+      }
+    });
+    
+    // Format the addresses for the frontend
+    const formattedAddresses = addresses.map(address => ({
+      address_id: address.address_id,
+      display_name: `${address.building?.building_name || 'Building'} - ${address.flat_no || 'No Flat'} (ID: ${address.address_id})`
+    }));
+    
+    return res.status(200).json(formattedAddresses);
+  } catch (error) {
+    console.error('Error fetching addresses:', error);
+    return res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   viewBill,
   createBill,
   updateBill,
-  deleteBill
+  deleteBill,
+  getUtilityTypes,
+  getAddressList
 };

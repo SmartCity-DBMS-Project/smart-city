@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";  // Added useState import
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -14,11 +14,12 @@ import { Button } from "@/components/ui/button";
 import z from "zod";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
-
+import { Loader2 } from "lucide-react";  // Added Loader2 icon
 
 export default function LoginForm() {
   const { user, setUser } = useUser();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);  // Added loading state
 
   const form = useForm({
     defaultValues: {
@@ -28,7 +29,8 @@ export default function LoginForm() {
   });
 
   const onSubmit = async (values) => {
-    try{
+    try {
+      setIsLoading(true);  // Set loading state to true when starting request
       const response = await fetch('http://localhost:8000/auth/login', {
         method: 'POST',
         headers: { 
@@ -56,6 +58,8 @@ export default function LoginForm() {
       console.log("Error: ", error);
       console.log(JSON.stringify(values));
       alert("An error occured");
+    } finally {
+      setIsLoading(false);  // Reset loading state when request completes
     }
   };
 
@@ -126,8 +130,16 @@ export default function LoginForm() {
           <Button 
             type="submit" 
             className="w-full bg-acc-blue hover:bg-acc-blue/90 text-white py-5 rounded-lg font-medium transition-colors"
+            disabled={isLoading}  // Disable button when loading
           >
-            Sign In
+            {isLoading ? (  // Show loading spinner when loading
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              "Sign In"
+            )}
           </Button>
           
         </form>
