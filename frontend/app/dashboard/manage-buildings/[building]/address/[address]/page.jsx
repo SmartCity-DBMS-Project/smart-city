@@ -38,6 +38,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { ArrowLeft, Plus, Edit, Trash2 } from "lucide-react";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonLoader from "@/components/SkeletonLoader";
 
 export default function AddressDetailsPage({ params }) {
   const { user, loading } = useUser();
@@ -240,12 +242,57 @@ export default function AddressDetailsPage({ params }) {
   const areParamsValid = building_id && address_id && 
     !isNaN(building_id) && !isNaN(address_id);
 
-  if (loading || isLoading)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading... (Params: building_id={building_id}, address_id={address_id})</p>
-      </div>
-    );
+  if (loading) return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <div className="flex items-center gap-4 mb-8">
+            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <div>
+              <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
+              <div className="h-4 w-80 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+  
+      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <LoadingSpinner message="Loading address details..." />
+        </div>
+      </section>
+    </main>
+  );
+
+  if (isLoading) return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <div className="flex items-center gap-4 mb-8">
+            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-primary mb-2">
+                Address Details
+              </h1>
+              <p className="text-muted-foreground">Manage citizens linked to this address</p>
+            </div>
+          </div>
+        </div>
+      </section>
+  
+      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <LoadingSpinner message="Loading address information..." />
+        </div>
+      </section>
+    </main>
+  );
 
   if (!areParamsValid)
     return (

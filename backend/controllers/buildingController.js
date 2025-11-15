@@ -35,40 +35,18 @@ async function handleGetBuildingsByType(req, res){
                 }
             }
         },
-        include: { 
-            building_type: true,
-            address: {
-                select: {
-                    street: true,
-                    zone: true,
-                    city: true,
-                    pincode: true
-                }
-            }
+        select: {
+          building_id: true,
+          building_name: true,
+          street: true,
+          zone: true,
+          pincode: true,
         }
     });
-    
-    // Remove duplicate addresses for each building
-    const buildingsWithUniqueAddresses = buildings.map(building => {
-        const uniqueAddresses = [];
-        const seenAddresses = new Set();
-        
-        building.address.forEach(addr => {
-            // Create a unique key for each address
-            const addressKey = `${addr.street}-${addr.zone}-${addr.city}-${addr.pincode}`;
-            if (!seenAddresses.has(addressKey)) {
-                seenAddresses.add(addressKey);
-                uniqueAddresses.push(addr);
-            }
-        });
-        
-        return {
-            ...building,
-            address: uniqueAddresses
-        };
-    });
+
+    console.log(buildings);
       
-    return res.status(200).json(buildingsWithUniqueAddresses);
+    return res.status(200).json(buildings);
 
   } catch (error) {
     console.error("Failed to fetch buildings by type:", error.message);
@@ -207,6 +185,53 @@ async function handleGetBuildingById(req, res) {
   }
 }
 
+// New function to update a building
+async function handleUpdateBuilding(req, res) {
+  try {
+    console.log('Updating Building ID:', req.params.building_id, 'with data:', req.body);
+
+    const building_id = parseInt(req.params.building_id);
+    const { building_name, street, zone, pincode, type_id } = req.body;
+
+    // Check if building exists
+    const existingBuilding = await prisma.building.findUnique({
+      where: { building_id: building_id },
+    });
+
+    if (!existingBuilding) {
+      return res.status(404).json({ error: "Building not found" });
+    }
+
+    // If type_id is provided, verify it exists
+    if (type_id) {
+      const type = await prisma.building_type.findUnique({
+        where: { type_id: type_id },
+      });
+
+      if (!type) {
+        return res.status(400).json({ error: "Invalid type_id" });
+      }
+    }
+
+    // Update building
+    const updatedBuilding = await prisma.building.update({
+      where: { building_id: building_id },
+      data: {
+        building_name: building_name || existingBuilding.building_name,
+        street: street || existingBuilding.street,
+        zone: zone || existingBuilding.zone,
+        pincode: pincode || existingBuilding.pincode,
+        type_id: type_id || existingBuilding.type_id,
+      },
+    });
+
+    return res.status(200).json(updatedBuilding);
+
+  } catch (error) {
+    console.error('Error updating building:', error);
+    return res.status(500).json({ error: error.message });
+  }
+}
 
 module.exports = {
     handleGetBuildings,
@@ -215,4 +240,5 @@ module.exports = {
     handlePostBuilding,
     handleDeleteBuilding,
     handleGetBuildingById,
+    handleUpdateBuilding,  // Added the new update function
 }

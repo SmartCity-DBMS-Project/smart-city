@@ -10,6 +10,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Receipt, Plus, Edit, Trash2, Search, IndianRupee, Calendar, MapPin, AlertCircle, ArrowLeft } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonLoader from "@/components/SkeletonLoader";
+import AddressSearchSelect from "@/components/AddressSearchSelect";
 
 export default function BillsPage() {
   const { user, loading } = useUser();
@@ -23,9 +26,11 @@ export default function BillsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedBill, setSelectedBill] = useState(null);
+  const [utilityTypes, setUtilityTypes] = useState([]);  // Utility types for dropdown
+  const [addresses, setAddresses] = useState([]);  // Addresses for dropdown
   const [formData, setFormData] = useState({
     address_id: "",
-    bill_type: "",
+    bill_type: "",  // This will now be the utility type
     amount: "",
     due_date: "",
     status: "PENDING"
@@ -35,8 +40,42 @@ export default function BillsPage() {
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
 
+  // Fetch utility types
+  const fetchUtilityTypes = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/bills/utility-types", { 
+        method: "GET", 
+        credentials: "include" 
+      });
+      if (!response.ok) throw new Error("Failed to fetch utility types");
+      const data = await response.json();
+      setUtilityTypes(data);
+    } catch (err) {
+      console.error("Error fetching utility types:", err);
+    }
+  };
+
+  // Fetch addresses
+  const fetchAddresses = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/bills/addresses", { 
+        method: "GET", 
+        credentials: "include" 
+      });
+      if (!response.ok) throw new Error("Failed to fetch addresses");
+      const data = await response.json();
+      setAddresses(data);
+    } catch (err) {
+      console.error("Error fetching addresses:", err);
+    }
+  };
+
   useEffect(() => {
-    if (user) fetchBills();
+    if (user) {
+      fetchBills();
+      fetchUtilityTypes();  // Fetch utility types when user is loaded
+      fetchAddresses();  // Fetch addresses when user is loaded
+    }
   }, [user]);
 
   useEffect(() => {
@@ -180,7 +219,55 @@ export default function BillsPage() {
 
   const stats = calculateStats();
 
-  if (loading || isLoading) return <div className="flex items-center justify-center min-h-screen"><p>Loading...</p></div>;
+  if (loading) return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div>
+              <SkeletonLoader />
+            </div>
+          </div>
+        </div>
+      </section>
+  
+      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <LoadingSpinner message="Loading bills..." />
+        </div>
+      </section>
+    </main>
+  );
+
+  if (isLoading) return (
+    <main className="flex flex-col items-center min-h-screen w-full">
+      <section className="w-full py-12 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <div className="flex items-center gap-4 mb-8">
+            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-primary mb-2">Bills Management</h1>
+              <p className="text-muted-foreground">View and manage your utility bills</p>
+            </div>
+            {user?.role === "ADMIN" && (
+              <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            )}
+          </div>
+        </div>
+      </section>
+  
+      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <LoadingSpinner message="Loading bills..." />
+        </div>
+      </section>
+    </main>
+  );
+
   if (!user) return null;
 
   return (
@@ -215,12 +302,29 @@ export default function BillsPage() {
                   <form onSubmit={handleCreateBill}>
                     <div className="grid gap-4 py-4">
                       <div>
-                        <Label htmlFor="address_id">Address ID</Label>
-                        <Input id="address_id" type="number" value={formData.address_id || ""} onChange={(e) => setFormData({...formData, address_id: e.target.value})} required />
+                        <AddressSearchSelect
+                          id="address_id"
+                          value={formData.address_id}
+                          onChange={(value) => setFormData({...formData, address_id: value})}
+                          required
+                        />
                       </div>
                       <div>
                         <Label htmlFor="bill_type">Bill Type</Label>
-                        <Input id="bill_type" value={formData.bill_type || ""} onChange={(e) => setFormData({...formData, bill_type: e.target.value})} placeholder="e.g., Electricity, Water" required />
+                        <select 
+                          id="bill_type" 
+                          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                          value={formData.bill_type || ""} 
+                          onChange={(e) => setFormData({...formData, bill_type: e.target.value})}
+                          required
+                        >
+                          <option value="">Select a bill type</option>
+                          {utilityTypes.map((utility) => (
+                            <option key={utility.utility_id} value={utility.type}>
+                              {utility.type}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <Label htmlFor="amount">Amount</Label>
@@ -378,12 +482,29 @@ export default function BillsPage() {
             <form onSubmit={handleUpdateBill}>
               <div className="grid gap-4 py-4">
                 <div>
-                  <Label htmlFor="edit_address_id">Address ID</Label>
-                  <Input id="edit_address_id" type="number" value={formData.address_id || ""} onChange={(e) => setFormData({...formData, address_id: e.target.value})} required />
+                  <AddressSearchSelect
+                    id="edit_address_id"
+                    value={formData.address_id}
+                    onChange={(value) => setFormData({...formData, address_id: value})}
+                    required
+                  />
                 </div>
                 <div>
                   <Label htmlFor="edit_bill_type">Bill Type</Label>
-                  <Input id="edit_bill_type" value={formData.bill_type || ""} onChange={(e) => setFormData({...formData, bill_type: e.target.value})} required />
+                  <select 
+                    id="edit_bill_type" 
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                    value={formData.bill_type || ""} 
+                    onChange={(e) => setFormData({...formData, bill_type: e.target.value})}
+                    required
+                  >
+                    <option value="">Select a bill type</option>
+                    {utilityTypes.map((utility) => (
+                      <option key={utility.utility_id} value={utility.type}>
+                        {utility.type}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <Label htmlFor="edit_amount">Amount</Label>
