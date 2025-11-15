@@ -29,10 +29,29 @@ export default function AddressSearchSelect({
 
   // Fetch addresses on component mount
   useEffect(() => {
-    // In a real implementation, this would fetch from an API
-    // For now, we'll use mock data
-    setAddresses(mockAddresses);
+    async function fetchAddresses() {
+      try {
+        const response = await fetch("http://localhost:8000/api/addresses/all", {
+          method: "GET",
+          credentials: "include" // if your backend uses cookies/auth
+        });
+      
+        if (!response.ok) {
+          throw new Error("Failed to fetch addresses");
+        }
+      
+        const data = await response.json();
+        console.log("Fetched addresses:", data);
+        setAddresses(data);
+      
+      } catch (error) {
+        console.error("Error fetching addresses:", error);
+      }
+    }
+  
+    fetchAddresses();
   }, []);
+
 
   // Filter addresses based on search term
   const filteredAddresses = addresses.filter(address => 

@@ -1,5 +1,39 @@
 const prisma = require('../lib/prisma');
 
+async function handleGetAllAddresses(req, res) {
+  try {
+    console.log(`handleGetAllAddresses`);
+
+    const addresses = await prisma.address.findMany({
+      include: {
+        building: {
+          select: {
+            building_name: true,
+            street: true,
+            zone: true,
+          }
+        }
+      }
+    });
+
+    // Flatten the data
+    const result = addresses.map(addr => ({
+      address_id: addr.address_id,
+      flat_no: addr.flat_no,
+      building_name: addr.building?.building_name || null,
+      street: addr.building?.street || null,
+      zone: addr.building?.zone || null,
+    }));
+
+    return res.json(result);
+
+  } catch (error) {
+    console.log(`Failed`);
+    return res.status(500).json({ error: error.message });
+  }
+}
+
+
 async function handleGetAddressesByBuilding(req, res) {
   try{
     console.log(`handleGetAddressesByBuilding`);
@@ -244,6 +278,7 @@ async function handleDeleteCitizensByAddress(req, res) {
 }
 
 module.exports = {
+    handleGetAllAddresses,
     handleGetAddressesByBuilding,
     handleAddAddressToBuilding,
     handleUpdateAddress,
