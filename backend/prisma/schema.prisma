@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64"]
 }
 
 datasource db {
@@ -109,18 +110,6 @@ model notifications {
   @@index([citizen_id], map: "idx_notifications_citizen_id")
   @@index([login_id], map: "idx_notifications_login_id")
   @@index([type, type_id], map: "idx_notifications_type_typeid")
-}
-
-model request {
-  request_id   Int       @id @default(autoincrement())
-  citizen_id   Int
-  service_type String?   @db.VarChar(100)
-  details      String?
-  status       String?   @default("PENDING") @db.VarChar(50)
-  created_at   DateTime? @default(now()) @db.Timestamp(6)
-  updated_at   DateTime? @default(now()) @db.Timestamp(6)
-  comment      String?
-  citizen      citizen   @relation(fields: [citizen_id], references: [citizen_id], onDelete: Cascade, map: "fk_request_citizen")
 }
 
 model request {
