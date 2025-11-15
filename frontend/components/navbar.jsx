@@ -28,8 +28,8 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 w-full bg-primary text-primary-foreground p-4 z-50">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold flex items-center">
-          <span className="bg-acc-blue text-white rounded-lg px-2 py-1 mr-2">SC</span>
+        <Link href="/" className="text-2xl flex items-center">
+          {/* <span className="bg-acc-blue text-white rounded-lg px-2 py-1 mr-2">SC</span> */}
           Smart City
         </Link>
 

@@ -10,9 +10,10 @@ export default function utilityPage({params}){
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await fetch(`http://localhost:8000/api/buildings/${utility}`);
+                const response = await fetch(`http://localhost:8000/api/buildings/types/${utility}`);
                 if(response.ok){
                     const data = await response.json();
+                    console.log(buildings);
                     setBuildings(data);
                 } else {
                     console.error('Error fetching data: Response not OK');
@@ -74,14 +75,13 @@ export default function utilityPage({params}){
                         <h3 className="text-2xl font-bold text-primary mb-6 text-center">Associated Buildings</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {buildings.map((building) => (
-                                <div key={building.build_id} className="bg-card rounded-xl border border-input shadow-sm p-6 hover:shadow-md transition-shadow">
+                                <div key={building.building_id} className="bg-card rounded-xl border border-input shadow-sm p-6 hover:shadow-md transition-shadow">
                                     <div className="flex flex-col h-full">
-                                        <h4 className="text-xl font-bold text-primary mb-2">{building.b_name || 'Unnamed Building'}</h4>
-                                        {building.address && building.address.length > 0 && (
+                                        <h4 className="text-xl font-bold text-primary mb-2">{building.building_name || 'Unnamed Building'}</h4>
+                                        {building && building.length > 0 && (
                                             <p className="text-muted-foreground flex-grow">
-                                                {building.address[0].street}, {building.address[0].zone}
-                                                {building.address[0].city && `, ${building.address[0].city}`}
-                                                {building.address[0].pincode && ` - ${building.address[0].pincode}`}
+                                                {building.street}, {building.zone}
+                                                {building.pincode && ` - ${building.pincode}`}
                                             </p>
                                         )}
                                         <div className="mt-4">
