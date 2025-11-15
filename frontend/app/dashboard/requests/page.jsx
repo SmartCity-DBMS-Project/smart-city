@@ -1,11 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { FileText, Plus, Edit, Trash2, Search, AlertCircle, ArrowLeft, User, Calendar } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
@@ -23,35 +23,57 @@ export default function RequestsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [formData, setFormData] = useState({
-    citizen_id: "",
     service_type: "",
     details: "",
-    status: "PENDING"
+    status: "PENDING",
+    comment: ""
   });
-
+  // New state for utility types
+  const [utilityTypes, setUtilityTypes] = useState([]);
+  const [utilitiesLoading, setUtilitiesLoading] = useState(true);
+  const [utilitiesError, setUtilitiesError] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  
   useEffect(() => {
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
+
+  // Fetch utility types when component mounts
+  useEffect(() => {
+    fetchUtilityTypes();
+  }, []);
 
   useEffect(() => {
     if (user) fetchRequests();
   }, [user]);
 
   useEffect(() => {
-    const filtered = searchTerm
-      ? requests.filter(request => 
-          request.service_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          request.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          request.citizen_id?.toString().includes(searchTerm)
-        )
+    const filtered = searchTerm || statusFilter !== "ALL"
+      ? requests.filter(request => {
+          const matchesSearch = !searchTerm || 
+            request.service_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            request.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            request.citizen_id?.toString().includes(searchTerm);
+            
+          const matchesStatus = statusFilter === "ALL" || request.status === statusFilter;
+          
+          return matchesSearch && matchesStatus;
+        })
       : requests;
     setFilteredRequests(filtered);
-  }, [searchTerm, requests]);
+  }, [searchTerm, requests, statusFilter]);
 
   const fetchRequests = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:8000/api/requests", { 
+      let url = "http://localhost:8000/api/requests";
+      
+      // If user is a citizen, only fetch their requests
+      if (user?.role === "CITIZEN") {
+        url += `/citizen/${user.citizen_id}`;
+      }
+      
+      const response = await fetch(url, { 
         method: "GET", 
         credentials: "include" 
       });
@@ -66,6 +88,30 @@ export default function RequestsPage() {
     }
   };
 
+  // Fetch utility types from backend
+  const fetchUtilityTypes = async () => {
+    try {
+      setUtilitiesLoading(true);
+      setUtilitiesError(null);
+      
+      const response = await fetch("http://localhost:8000/api/utilities/types", {
+        method: "GET",
+        credentials: "include"
+      });
+      
+      if (!response.ok) throw new Error("Failed to fetch utility types");
+      
+      const data = await response.json();
+      setUtilityTypes(data);
+    } catch (err) {
+      console.error('Error fetching utility types:', err);
+      setUtilitiesError("Failed to load service types");
+      setUtilityTypes([]);
+    } finally {
+      setUtilitiesLoading(false);
+    }
+  };
+
   const handleCreateRequest = async (e) => {
     e.preventDefault();
     try {
@@ -74,10 +120,11 @@ export default function RequestsPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          citizen_id: parseInt(formData.citizen_id),
+          citizen_id: user?.citizen_id, // Use citizen ID from user context
           service_type: formData.service_type,
           details: formData.details,
-          status: formData.status
+          comment: formData.comment,
+          status: "PENDING" // Default to PENDING for new requests
         }),
       });
       
@@ -91,7 +138,7 @@ export default function RequestsPage() {
       setIsCreateDialogOpen(false);
       resetForm();
     } catch (err) {
-      alert("Error creating request: " + err.message);
+      alert("Error: " + err.message);
     }
   };
 
@@ -103,17 +150,21 @@ export default function RequestsPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          citizen_id: parseInt(formData.citizen_id),
-          service_type: formData.service_type,
-          details: formData.details,
-          status: formData.status
+          status: formData.status,
+          comment: formData.comment
         }),
       });
-      if (!response.ok) throw new Error("Failed to update request");
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Failed to update request" }));
+        throw new Error(errorData.error || `Failed to update request: ${response.status} ${response.statusText}`);
+      }
+      
       await fetchRequests();
       setIsEditDialogOpen(false);
       resetForm();
     } catch (err) {
+      console.error("Update request error:", err);
       alert("Error: " + err.message);
     }
   };
@@ -135,16 +186,16 @@ export default function RequestsPage() {
   const openEditDialog = (request) => {
     setSelectedRequest(request);
     setFormData({
-      citizen_id: request.citizen_id.toString(),
       service_type: request.service_type,
       details: request.details,
-      status: request.status
+      status: request.status,
+      comment: request.comment || ""
     });
     setIsEditDialogOpen(true);
   };
 
   const resetForm = () => {
-    setFormData({ citizen_id: "", service_type: "", details: "", status: "PENDING" });
+    setFormData({ service_type: "", details: "", status: "PENDING", comment: "" });
   };
 
   const getStatusColor = (status) => {
@@ -167,7 +218,66 @@ export default function RequestsPage() {
 
   const stats = calculateStats();
 
-  if (loading || isLoading) return <div className="flex items-center justify-center min-h-screen"><p>Loading...</p></div>;
+  if (loading || isLoading) {
+    return (
+      <main className="flex flex-col items-center min-h-screen w-full">
+        <section className="w-full py-12 md:py-16 bg-background">
+          <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="h-10 w-24 bg-gray-200 rounded animate-pulse"></div>
+              <div className="flex-1">
+                <div className="h-8 w-64 bg-gray-200 rounded animate-pulse mb-2"></div>
+                <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              {user?.role === "CITIZEN" && (
+                <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              {[...Array(4)].map((_, i) => (
+                <Card key={i} className="border-t-4 border-t-gray-200">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-6 w-6 bg-gray-200 rounded animate-pulse"></div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-6 w-8 bg-gray-200 rounded animate-pulse"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+        
+        <section className="w-full py-12 bg-card">
+          <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-2"></div>
+                    <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-9 w-48 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[...Array(6)].map((_, i) => (
+                    <Card key={i} className="h-48 bg-gray-200 rounded animate-pulse"></Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      </main>
+    );
+  }
   if (!user) return null;
 
   return (
@@ -180,66 +290,27 @@ export default function RequestsPage() {
               Back
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-primary mb-2">Requests Management</h1>
-              <p className="text-muted-foreground">View and manage service requests</p>
+              <h1 className="text-3xl font-bold text-primary mb-2">
+                {user?.role === "CITIZEN" ? "My Requests" : "Requests Management"}
+              </h1>
+              <p className="text-muted-foreground">
+                {user?.role === "CITIZEN" 
+                  ? "View and submit service requests" 
+                  : "View and manage service requests"}
+              </p>
             </div>
-            {user?.role === "ADMIN" && (
-              <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
-                setIsCreateDialogOpen(open);
-                if (open) resetForm();
-              }}>
-                <DialogTrigger asChild>
-                  <Button className="bg-acc-blue hover:bg-acc-blue/90">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Request
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Request</DialogTitle>
-                    <DialogDescription>Add a new service request to the system</DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleCreateRequest}>
-                    <div className="grid gap-4 py-4">
-                      <div>
-                        <Label htmlFor="citizen_id">Citizen ID</Label>
-                        <Input id="citizen_id" type="number" value={formData.citizen_id || ""} onChange={(e) => setFormData({...formData, citizen_id: e.target.value})} required />
-                      </div>
-                      <div>
-                        <Label htmlFor="service_type">Service Type</Label>
-                        <Input id="service_type" value={formData.service_type || ""} onChange={(e) => setFormData({...formData, service_type: e.target.value})} placeholder="e.g., Water, Electricity, Waste Management" required />
-                      </div>
-                      <div>
-                        <Label htmlFor="details">Details</Label>
-                        <textarea
-                          id="details"
-                          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                          value={formData.details || ""}
-                          onChange={(e) => setFormData({...formData, details: e.target.value})}
-                          placeholder="Enter request details"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="status">Status</Label>
-                        <select id="status" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs" value={formData.status || "PENDING"} onChange={(e) => setFormData({...formData, status: e.target.value})}>
-                          <option value="PENDING">Pending</option>
-                          <option value="APPROVED">Approved</option>
-                          <option value="RESOLVED">Resolved</option>
-                          <option value="REJECTED">Rejected</option>
-                        </select>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button type="submit">Create Request</Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
+            {user?.role === "CITIZEN" && (
+              <Button 
+                className="bg-acc-blue hover:bg-acc-blue/90"
+                onClick={() => setIsCreateDialogOpen(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Request
+              </Button>
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
             <Card className="border-t-4 border-t-acc-blue">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
@@ -258,24 +329,51 @@ export default function RequestsPage() {
                 <div className="text-2xl font-bold">{stats.pending}</div>
               </CardContent>
             </Card>
-            <Card className="border-t-4 border-t-blue-500">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Approved</CardTitle>
-                <User className="h-6 w-6 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.approved}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-t-4 border-t-green-500">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Resolved</CardTitle>
-                <Calendar className="h-6 w-6 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.resolved}</div>
-              </CardContent>
-            </Card>
+            {user?.role === "CITIZEN" ? (
+              <>
+                <Card className="border-t-4 border-t-blue-500">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Approved</CardTitle>
+                    <User className="h-6 w-6 text-blue-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stats.approved}</div>
+                  </CardContent>
+                </Card>
+                <Card className="border-t-4 border-t-green-500">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Resolved</CardTitle>
+                    <Calendar className="h-6 w-6 text-green-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stats.resolved}</div>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <>
+                <Card className="border-t-4 border-t-blue-500">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Approved</CardTitle>
+                    <User className="h-6 w-6 text-blue-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stats.approved}</div>
+                  </CardContent>
+                </Card>
+                <Card className="border-t-4 border-t-red-500">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+                    <Trash2 className="h-6 w-6 text-red-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {filteredRequests.filter(r => r.status === "REJECTED").length}
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -284,19 +382,52 @@ export default function RequestsPage() {
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                  <CardTitle>All Requests</CardTitle>
-                  <CardDescription>List of all service requests in the system</CardDescription>
+                  <CardTitle>
+                    {user?.role === "CITIZEN" ? "My Requests" : "All Requests"}
+                  </CardTitle>
+                  <CardDescription>
+                    {user?.role === "CITIZEN" 
+                      ? "List of your service requests" 
+                      : "List of all service requests in the system"}
+                  </CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Search className="h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search Requests..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-sm bg-background"
-                  />
+                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search Requests..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="max-w-sm bg-background"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs"
+                    >
+                      <option value="ALL">All Statuses</option>
+                      <option value="PENDING">Pending</option>
+                      <option value="APPROVED">Approved</option>
+                      <option value="RESOLVED">Resolved</option>
+                      {user?.role === "ADMIN" && <option value="REJECTED">Rejected</option>}
+                    </select>
+                    {(searchTerm || statusFilter !== "ALL") && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          setSearchTerm("");
+                          setStatusFilter("ALL");
+                        }}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             </CardHeader>
@@ -304,52 +435,172 @@ export default function RequestsPage() {
               {error ? (
                 <div className="text-center py-8 text-red-500">Error: {error}</div>
               ) : filteredRequests.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No requests found</div>
+                <div className="text-center py-12">
+                  <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+                  <h3 className="mt-4 text-lg font-medium">No requests found</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {searchTerm || statusFilter !== "ALL" 
+                      ? "No requests match your current filters." 
+                      : user?.role === "CITIZEN"
+                        ? "You haven't submitted any requests yet."
+                        : "There are no requests in the system."}
+                  </p>
+                  {user?.role === "CITIZEN" && !searchTerm && statusFilter === "ALL" && (
+                    <div className="mt-6">
+                      <Button onClick={() => setIsCreateDialogOpen(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Request
+                      </Button>
+                    </div>
+                  )}
+                </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Request ID</TableHead>
-                      <TableHead>Citizen ID</TableHead>
-                      <TableHead>Service Type</TableHead>
-                      <TableHead>Details</TableHead>
-                      <TableHead>Status</TableHead>
-                      {user?.role === "ADMIN" && <TableHead>Actions</TableHead>}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredRequests.map((request) => (
-                      <TableRow key={request.request_id}>
-                        <TableCell className="font-medium">{request.request_id}</TableCell>
-                        <TableCell>{request.citizen_id}</TableCell>
-                        <TableCell>{request.service_type}</TableCell>
-                        <TableCell className="max-w-xs truncate">{request.details}</TableCell>
-                        <TableCell>
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(request.status)}`}>
+                // Unified card layout for both citizen and admin
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredRequests.map((request) => (
+                    <Card 
+                      key={request.request_id} 
+                      className="hover:shadow-md transition-shadow bg-white"
+                    >
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-lg">Request #{request.request_id}</CardTitle>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            request.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            request.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
+                            request.status === 'RESOLVED' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
                             {request.status}
                           </span>
-                        </TableCell>
-                        {user?.role === "ADMIN" && (
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button variant="outline" size="icon-sm" onClick={() => openEditDialog(request)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="destructive" size="icon-sm" onClick={() => handleDeleteRequest(request.request_id)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                        </div>
+                        <CardDescription className="text-sm mt-1">
+                          {user?.role === "CITIZEN" 
+                            ? request.service_type 
+                            : `Citizen ID: ${request.citizen_id}`}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Service</p>
+                            <p className="text-sm font-medium">{request.service_type}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Details</p>
+                            <p className="text-sm">{request.details || "No details provided"}</p>
+                          </div>
+                          {request.comment && (
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">
+                                {user?.role === "CITIZEN" ? "Your Comment" : "Comment"}
+                              </p>
+                              <p className="text-sm">{request.comment}</p>
                             </div>
-                          </TableCell>
-                        )}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          )}
+                          {user?.role === "CITIZEN" && request.status === "REJECTED" && request.comment && (
+                            <div className="border-l-2 border-red-500 pl-2">
+                              <p className="text-sm font-medium text-red-500">Admin Comment</p>
+                              <p className="text-sm">{request.comment}</p>
+                            </div>
+                          )}
+                          <div className="flex justify-between items-center pt-2">
+                            <div className="text-xs text-muted-foreground">
+                              {request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}
+                            </div>
+                            {user?.role === "ADMIN" ? (
+                              <Button variant="outline" size="sm" onClick={() => openEditDialog(request)}>
+                                Update
+                              </Button>
+                            ) : request.status === "RESOLVED" ? (
+                              <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                Completed
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
       </section>
+
+      {user?.role === "CITIZEN" && (
+        <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
+          setIsCreateDialogOpen(open);
+          if (open) resetForm();
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Request</DialogTitle>
+              <DialogDescription>Submit a new service request</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleCreateRequest}>
+              <div className="grid gap-4 py-4">
+                <div>
+                  <Label htmlFor="service_type">Service Type</Label>
+                  {utilitiesLoading ? (
+                    <Input 
+                      id="service_type" 
+                      value="Loading services..." 
+                      disabled 
+                    />
+                  ) : utilitiesError || utilityTypes.length === 0 ? (
+                    <Input 
+                      id="service_type" 
+                      value="No available services" 
+                      disabled 
+                    />
+                  ) : (
+                    <select
+                      id="service_type"
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs"
+                      value={formData.service_type || ""}
+                      onChange={(e) => setFormData({...formData, service_type: e.target.value})}
+                      required
+                    >
+                      <option value="">Select a service type</option>
+                      {utilityTypes.map((type, index) => (
+                        <option key={index} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="details">Details</Label>
+                  <Textarea
+                    id="details"
+                    value={formData.details || ""}
+                    onChange={(e) => setFormData({...formData, details: e.target.value})}
+                    placeholder="Enter request details"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="comment">Comment (Optional)</Label>
+                  <Textarea
+                    id="comment"
+                    value={formData.comment || ""}
+                    onChange={(e) => setFormData({...formData, comment: e.target.value})}
+                    placeholder="Add any additional comments"
+                  />
+                </div>
+                {/* Hidden citizen_id field, populated from user context */}
+                <input type="hidden" value={user?.citizen_id || ""} />
+              </div>
+              <DialogFooter>
+                <Button type="submit">Submit Request</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {user?.role === "ADMIN" && (
         <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
@@ -362,26 +613,23 @@ export default function RequestsPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Request</DialogTitle>
-              <DialogDescription>Update request information</DialogDescription>
+              <DialogDescription>Update request status</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleUpdateRequest}>
               <div className="grid gap-4 py-4">
                 <div>
-                  <Label htmlFor="edit_citizen_id">Citizen ID</Label>
-                  <Input id="edit_citizen_id" type="number" value={formData.citizen_id || ""} onChange={(e) => setFormData({...formData, citizen_id: e.target.value})} required />
+                  <Label>Citizen ID</Label>
+                  <Input value={selectedRequest?.citizen_id || ""} disabled />
                 </div>
                 <div>
-                  <Label htmlFor="edit_service_type">Service Type</Label>
-                  <Input id="edit_service_type" value={formData.service_type || ""} onChange={(e) => setFormData({...formData, service_type: e.target.value})} required />
+                  <Label>Service Type</Label>
+                  <Input value={selectedRequest?.service_type || ""} disabled />
                 </div>
                 <div>
-                  <Label htmlFor="edit_details">Details</Label>
-                  <textarea
-                    id="edit_details"
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    value={formData.details || ""}
-                    onChange={(e) => setFormData({...formData, details: e.target.value})}
-                    required
+                  <Label>Details</Label>
+                  <Textarea
+                    value={selectedRequest?.details || ""}
+                    disabled
                   />
                 </div>
                 <div>
@@ -392,6 +640,15 @@ export default function RequestsPage() {
                     <option value="RESOLVED">Resolved</option>
                     <option value="REJECTED">Rejected</option>
                   </select>
+                </div>
+                <div>
+                  <Label htmlFor="edit_comment">Comment</Label>
+                  <Textarea
+                    id="edit_comment"
+                    value={formData.comment || ""}
+                    onChange={(e) => setFormData({...formData, comment: e.target.value})}
+                    placeholder="Add a comment for the citizen"
+                  />
                 </div>
               </div>
               <DialogFooter>

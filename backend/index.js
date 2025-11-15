@@ -5,6 +5,8 @@ const buildingRouter = require('./routes/buildingRoutes');
 const billRouter = require('./routes/billRoutes');
 const authRouter = require('./routes/authRoutes');
 const citizenRouter = require('./routes/citizenRouter');
+const requestRouter = require('./routes/requestRoutes');
+const utilitiesRouter = require('./routes/utilitiesRoutes');
 
 const cors = require('cors');
 const cookieParser = require("cookie-parser");
@@ -39,6 +41,10 @@ app.use("/api/buildings", buildingRouter);
 app.use("/api/citizens", citizenRouter);
 
 app.use("/api/bills", billRouter);
+
+app.use("/api/requests", requestRouter);
+
+app.use("/api/utilities", utilitiesRouter);
 
 app.use("/auth", authRouter);
 
