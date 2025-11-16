@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Phone, Mail, MapPin, Clock, Heart, BookOpen, Droplets, Building, Car, TreePine, Shield, Plug } from "lucide-react";
+import Link from "next/link";
 
 export default function DeptPage({params}){
     const departmentName = params.dept;
@@ -177,7 +178,7 @@ export default function DeptPage({params}){
     return(
         <main className="flex flex-col items-center min-h-screen w-full">
             {/* Header Section - Full width with distinct darker color */}
-            <section className="w-full py-12 md:py-16 bg-acc-blue/20">
+            <section className="w-full py-12 md:py-16 bg-background">
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                     <div className="mb-8 text-center">
                         <div className="flex justify-center mb-4">
@@ -190,7 +191,7 @@ export default function DeptPage({params}){
             </section>
 
             {/* Content Section - Full width with distinct darker color */}
-            <section className="w-full py-12 bg-acc-orange/20">
+            <section className="w-full py-12 bg-muted-background">
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Services */}
@@ -298,10 +299,13 @@ export default function DeptPage({params}){
                                         </div>
 
                                         <div className="pt-4">
-                                            <button className="w-full bg-acc-blue text-white py-3 rounded-lg font-medium hover:bg-acc-blue/90 transition-colors">
-                                                Request Service
-                                            </button>
-                                        </div>
+    <Link 
+      href="/dashboard/requests" 
+      className="flex justify-center w-full bg-acc-blue text-white py-3 rounded-lg font-medium hover:bg-acc-blue/90 transition-colors"
+    >
+        Request Service
+    </Link>
+</div>
                                     </div>
                                 </CardContent>
                             </Card>
