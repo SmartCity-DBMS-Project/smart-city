@@ -39,7 +39,7 @@ export default function Navbar() {
               <NavigationMenuLink asChild>
                 <Link 
                   href="/" 
-                  className="px-3 py-2 rounded-md transition-colors"
+                  className="px-3 py-2 font-medium rounded-md transition-colors"
                 >
                   Home
                 </Link>
@@ -50,7 +50,7 @@ export default function Navbar() {
               <NavigationMenuLink asChild>
                 <Link 
                   href="/dashboard" 
-                  className="px-3 py-2 rounded-md transition-colors"
+                  className="px-3 py-2 font-medium rounded-md transition-colors"
                 >
                   Dashboard
                 </Link>
@@ -61,7 +61,7 @@ export default function Navbar() {
               <NavigationMenuLink asChild>
                 <Link 
                   href="/departments" 
-                  className="px-3 py-2 rounded-md transition-colors"
+                  className="px-3 py-2 font-medium rounded-md transition-colors"
                 >
                   Departments
                 </Link>
@@ -137,14 +137,14 @@ export default function Navbar() {
                 {user ? (
                   <button
                     onClick={handleLogout}
-                    className="px-4 py-2 text-white rounded-md"
+                    className="px-4 py-2 font-medium text-white rounded-md"
                   >
                     Logout
                   </button>
                 ) : (
                   <Link
                     href="/login"
-                    className="px-4 py-2 text-white rounded-md"
+                    className="px-4 py-2 font-medium text-white rounded-md"
                   >
                     Login
                   </Link>
