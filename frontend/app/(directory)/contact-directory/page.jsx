@@ -61,7 +61,7 @@ export default function Page(){
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {contacts.map((contact, index) => (
-                            <Card key={index} className="hover:shadow-lg transition-shadow duration-300 border-t-4 border-t-acc-blue bg-card">
+                            <Card key={index} className="hover:shadow-lg transition-shadow duration-300 border-t-4 border-t-acc-blue bg-white">
                                 <CardHeader>
                                     <CardTitle className="text-xl text-primary">{contact.department}</CardTitle>
                                 </CardHeader>
