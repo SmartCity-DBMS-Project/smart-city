@@ -33,8 +33,8 @@ router.delete("/:address_id", authorizeRoles(['ADMIN']), handleDeleteAddress);
 // Citizen routes under each address
 router.get("/:address_id/citizens", handleGetCitizensByAddress);
 router.post("/:address_id/citizens", authorizeRoles(['ADMIN']), handlePostCitizensByAddress);
-router.patch("/:address_id/citizens/:citizen_id", authorizeRoles(['ADMIN']), handlePatchCitizensByAddress);
-router.delete("/:address_id/citizens/:citizen_id", authorizeRoles(['ADMIN']), handleDeleteCitizensByAddress);
+router.patch("/:address_id/citizens/:citizen_id", authorizeRoles(['ADMIN']), handleUpdateCitizenByAddress);
+router.delete("/:address_id/citizens/:citizen_id", authorizeRoles(['ADMIN']), handleDeleteCitizenByAddress);
 
 
 module.exports = router;

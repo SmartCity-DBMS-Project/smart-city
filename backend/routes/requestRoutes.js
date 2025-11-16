@@ -25,9 +25,9 @@ router.get('/:id', getRequestById);
 router.post('/', createRequest);
 
 // Update a request
-router.patch('/:id', updateRequest);
+router.patch('/:id', authorizeRoles(['ADMIN']), updateRequest);
 
 // Delete a request
-router.delete('/:id', deleteRequest);
+router.delete('/:id', authorizeRoles(['ADMIN']), deleteRequest);
 
 module.exports = router;
