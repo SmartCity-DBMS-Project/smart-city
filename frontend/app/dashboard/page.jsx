@@ -116,16 +116,16 @@ export default function DashboardPage() {
               <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
 
                 {/* LEFT — YOUR INFO */}
-                <div className="space-y-2 text-sm text-muted-foreground">
+                <div className="space-y-2 text-sm text-primary">
                   {/* <h2 className="text-xl font-semibold text-primary mb-2">Your Info</h2> */}
 
-                  <ProfileItem label="Name" value={user.full_name} />
+                  <ProfileItem label="Name" className="text-primary" value={user.full_name} />
                   <ProfileItem label="Email" value={user.email} />
                   <ProfileItem label="Role" value={user.role} />
 
-                  <p className="font-medium text-lg"><span className="font-medium text-primary text-lg">Name:</span> {user.full_name}</p>
-                  <p className="font-medium text-lg"><span className="font-medium text-primary text-lg">Email:</span> {user.email}</p>
-                  <p className="font-medium text-lg"><span className="font-medium text-primary text-lg">Role:</span> {user.role}</p>
+                  {/* <p className="font-medium text-lg"><span className="font-medium text-primary text-lg">Name:</span> {user.full_name}</p> */}
+                  {/* <p className="font-medium text-lg"><span className="font-medium text-primary text-lg">Email:</span> {user.email}</p> */}
+                  {/* <p className="font-medium text-lg"><span className="font-medium text-primary text-lg">Role:</span> {user.role}</p> */}
 
                   {lastLogin && (
                     <p>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
                     href="/dashboard/notifications"
                     className="flex flex-col items-center justify-center gap-2
                                p-4 rounded-lg bg-card border shadow-sm
-                               hover:bg-blue-600 hover:border-blue-600
+                               hover:bg-acc-blue hover:border-acc-blue
                                transition duration-200 group w-40"
                   >
                     <Bell className="h-6 w-6 text-acc-blue group-hover:text-white transition" />
@@ -154,7 +154,7 @@ export default function DashboardPage() {
                     href="/dashboard/settings"
                     className="flex flex-col items-center justify-center gap-2
                                p-4 rounded-lg bg-card border shadow-sm
-                               hover:bg-blue-600 hover:border-blue-600
+                               hover:bg-acc-blue hover:border-acc-blue
                                transition duration-200 group w-40"
                   >
                     <Settings className="h-6 w-6 text-acc-blue group-hover:text-white transition" />
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                           href={action.slug}
                           className="flex flex-col items-center justify-center gap-2
                                     p-4 rounded-lg bg-background border shadow-sm
-                                    hover:bg-blue-600 hover:border-blue-600
+                                    hover:bg-acc-blue hover:border-acc-blue
                                     transition duration-200 group aspect-[6/3]"
                         >
                           <action.icon className="h-7 w-7 text-acc-blue group-hover:text-white transition" />
