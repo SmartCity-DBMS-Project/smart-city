@@ -30,7 +30,7 @@ export default function BillsPage() {
   const [formData, setFormData] = useState({
     address_id: "",
     bill_type: "",  // This will now be the utility type
-    amount: "",
+    units: "",  // Changed from amount to units
     due_date: "",
     status: "PENDING"
   });
@@ -119,8 +119,8 @@ export default function BillsPage() {
       errors.push("Bill type is required");
     }
     
-    if (!data.amount || isNaN(parseFloat(data.amount)) || parseFloat(data.amount) <= 0) {
-      errors.push("Amount must be a positive number");
+    if (!data.units || isNaN(parseFloat(data.units)) || parseFloat(data.units) <= 0) {
+      errors.push("Units must be a positive number");
     }
     
     if (!data.due_date) {
@@ -145,7 +145,7 @@ export default function BillsPage() {
       console.log('Creating bill with data:', {
         address_id: parseInt(formData.address_id),
         bill_type: formData.bill_type,
-        amount: parseFloat(formData.amount),
+        units: parseFloat(formData.units),  // Changed from amount to units
         due_date: new Date(formData.due_date).toISOString(),
         status: formData.status
       });
@@ -157,7 +157,7 @@ export default function BillsPage() {
         body: JSON.stringify({
           address_id: parseInt(formData.address_id),
           bill_type: formData.bill_type,
-          amount: parseFloat(formData.amount),
+          units: parseFloat(formData.units),  // Changed from amount to units
           due_date: new Date(formData.due_date).toISOString(),
           status: formData.status
         }),
@@ -202,7 +202,7 @@ export default function BillsPage() {
         body: JSON.stringify({
           address_id: parseInt(formData.address_id),
           bill_type: formData.bill_type,
-          amount: parseFloat(formData.amount),
+          units: parseFloat(formData.units),  // Changed from amount to units
           due_date: new Date(formData.due_date).toISOString(),
           status: formData.status
         }),
@@ -237,7 +237,7 @@ export default function BillsPage() {
     setFormData({
       address_id: bill.address_id.toString(),
       bill_type: bill.bill_type,
-      amount: bill.amount.toString(),
+      units: bill.units ? bill.units.toString() : "",  // Changed from amount to units
       due_date: new Date(bill.due_date).toISOString().split('T')[0],
       status: bill.status
     });
@@ -245,7 +245,7 @@ export default function BillsPage() {
   };
 
   const resetForm = () => {
-    setFormData({ address_id: "", bill_type: "", amount: "", due_date: "", status: "PENDING" });
+    setFormData({ address_id: "", bill_type: "", units: "", due_date: "", status: "PENDING" });  // Changed from amount to units
   };
 
   const getStatusColor = (status) => {
@@ -263,6 +263,12 @@ export default function BillsPage() {
     const paid = filteredBills.filter(b => b.status === "PAID").length;
     const overdue = filteredBills.filter(b => b.status === "OVERDUE").length;
     return { total, pending, paid, overdue };
+  };
+
+  // Function to calculate amount based on units and charge_per_unit
+  const calculateAmount = (units, chargePerUnit) => {
+    if (!units || !chargePerUnit) return 0;
+    return (parseFloat(units) * parseFloat(chargePerUnit)).toFixed(2);
   };
 
   const stats = calculateStats();
@@ -402,14 +408,14 @@ export default function BillsPage() {
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-gray-700">Amount</Label>
+              <Label className="text-sm font-medium text-gray-700">Units</Label>
               <Input
-                id="amount"
+                id="units"
                 type="number"
                 step="0.01"
-                value={formData.amount || ""}
+                value={formData.units || ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, amount: e.target.value })
+                  setFormData({ ...formData, units: e.target.value })
                 }
                 required
                 className="mt-1"
@@ -542,7 +548,8 @@ export default function BillsPage() {
                       <TableHead>Bill ID</TableHead>
                       <TableHead>Address ID</TableHead>
                       <TableHead>Type</TableHead>
-                      <TableHead>Amount</TableHead>
+                      <TableHead>Units</TableHead>
+                      <TableHead>Amount (₹)</TableHead>
                       <TableHead>Due Date</TableHead>
                       <TableHead>Status</TableHead>
                       {user?.role === "ADMIN" && <TableHead>Actions</TableHead>}
@@ -554,6 +561,7 @@ export default function BillsPage() {
                         <TableCell className="font-medium">{bill.bill_id}</TableCell>
                         <TableCell>{bill.address_id}</TableCell>
                         <TableCell>{bill.bill_type}</TableCell>
+                        <TableCell>{bill.units || "N/A"}</TableCell>
                         <TableCell>₹{Number(bill.amount).toFixed(2)}</TableCell>
                         <TableCell>{new Date(bill.due_date).toLocaleDateString()}</TableCell>
                         <TableCell>
@@ -626,8 +634,8 @@ export default function BillsPage() {
                   </select>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Amount</Label>
-                  <Input id="edit_amount" type="number" step="0.01" value={formData.amount || ""} onChange={(e) => setFormData({...formData, amount: e.target.value})} required className="mt-1" />
+                  <Label className="text-sm font-medium text-gray-700">Units</Label>
+                  <Input id="edit_units" type="number" step="0.01" value={formData.units || ""} onChange={(e) => setFormData({...formData, units: e.target.value})} required className="mt-1" />
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-700">Due Date</Label>

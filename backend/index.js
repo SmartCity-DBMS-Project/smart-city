@@ -46,8 +46,7 @@ app.use("/api/bills", billRouter);
 app.use("/api/requests", requestRouter);
 app.use("/api/utilities", utilitiesRouter);
 app.use("/api/notifications", notificationRouter);
-
-app.use("/auth", authRouter);
+app.use("/api/auth", authRouter);
 
 // Global error handler
 app.use((err, req, res, next) => {
