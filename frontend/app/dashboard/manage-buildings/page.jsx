@@ -28,7 +28,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Search, ArrowLeft } from "lucide-react";
+import { Plus, Search, ArrowLeft, Loader2 } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
@@ -46,7 +46,6 @@ export default function ManageBuildingsPage() {
   const [error, setError] = useState(null);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  // Temporary fix for missing state variables
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState(null);
   const [buildingTypes, setBuildingTypes] = useState([]);
@@ -58,6 +57,10 @@ export default function ManageBuildingsPage() {
     pincode: "",
     category: "",
   });
+
+  // State for form submission loading
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
@@ -109,9 +112,58 @@ export default function ManageBuildingsPage() {
     }
   };
 
+  // 🔹 Validate building form data
+  const validateBuildingForm = (data) => {
+    const errors = [];
+    
+    if (!data.building_name || data.building_name.trim() === "") {
+      errors.push("Building name is required");
+    }
+    
+    if (!data.street || data.street.trim() === "") {
+      errors.push("Street is required");
+    }
+    
+    if (!data.zone || data.zone.trim() === "") {
+      errors.push("Zone is required");
+    }
+    
+    if (!data.pincode || data.pincode.trim() === "") {
+      errors.push("Pincode is required");
+    } else if (!/^\d{6}$/.test(data.pincode)) {
+      errors.push("Pincode must be a 6-digit number");
+    }
+    
+    if (!data.building_type) {
+      errors.push("Building type is required");
+    }
+    
+    // If custom type is selected, validate custom fields
+    if (data.building_type === "custom") {
+      if (!data.custom_type_name || data.custom_type_name.trim() === "") {
+        errors.push("Custom type name is required");
+      }
+      
+      if (!data.category || data.category.trim() === "") {
+        errors.push("Category is required");
+      }
+    }
+    
+    return errors;
+  };
+
   // 🔹 Create new building
   const handleCreateBuilding = async (e) => {
     e.preventDefault();
+    
+    // Validate form data
+    const errors = validateBuildingForm(formBuildingData);
+    if (errors.length > 0) {
+      alert("Validation errors:\n" + errors.join("\n"));
+      return;
+    }
+    
+    setIsCreating(true);
     try {
       const isCustomType = formBuildingData.building_type === "custom";
       const requestBody = {
@@ -142,6 +194,8 @@ export default function ManageBuildingsPage() {
       resetBuildingForm();
     } catch (err) {
       alert("Error: " + err.message);
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -278,9 +332,9 @@ export default function ManageBuildingsPage() {
 
                   <form onSubmit={handleCreateBuilding} className="space-y-4">
                     <div>
-                      <Label>Building Name</Label>
+                      <Label className="text-sm font-medium text-gray-700">Building Name</Label>
                       <Input
-                        value={formBuildingData.building_name}
+                        value={formBuildingData.building_name || ""}
                         onChange={(e) =>
                           setBuildingFormData({
                             ...formBuildingData,
@@ -288,13 +342,14 @@ export default function ManageBuildingsPage() {
                           })
                         }
                         required
+                        className="mt-1"
                       />
                     </div>
 
                     <div>
-                      <Label>Street</Label>
+                      <Label className="text-sm font-medium text-gray-700">Street</Label>
                       <Input
-                        value={formBuildingData.street}
+                        value={formBuildingData.street || ""}
                         onChange={(e) =>
                           setBuildingFormData({
                             ...formBuildingData,
@@ -302,13 +357,14 @@ export default function ManageBuildingsPage() {
                           })
                         }
                         required
+                        className="mt-1"
                       />
                     </div>
 
                     <div>
-                      <Label>Zone</Label>
+                      <Label className="text-sm font-medium text-gray-700">Zone</Label>
                       <Input
-                        value={formBuildingData.zone}
+                        value={formBuildingData.zone || ""}
                         onChange={(e) =>
                           setBuildingFormData({
                             ...formBuildingData,
@@ -316,13 +372,14 @@ export default function ManageBuildingsPage() {
                           })
                         }
                         required
+                        className="mt-1"
                       />
                     </div>
 
                     <div>
-                      <Label>Pincode</Label>
+                      <Label className="text-sm font-medium text-gray-700">Pincode</Label>
                       <Input
-                        value={formBuildingData.pincode}
+                        value={formBuildingData.pincode || ""}
                         onChange={(e) =>
                           setBuildingFormData({
                             ...formBuildingData,
@@ -330,13 +387,14 @@ export default function ManageBuildingsPage() {
                           })
                         }
                         required
+                        className="mt-1"
                       />
                     </div>
 
                     <div>
-                      <Label>Building Type</Label>
+                      <Label className="text-sm font-medium text-gray-700">Building Type</Label>
                       <Select
-                        value={formBuildingData.building_type}
+                        value={formBuildingData.building_type || ""}
                         onValueChange={(value) =>
                           setBuildingFormData({
                             ...formBuildingData,
@@ -344,7 +402,7 @@ export default function ManageBuildingsPage() {
                           })
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Select Type" />
                         </SelectTrigger>
                         <SelectContent>
@@ -365,7 +423,7 @@ export default function ManageBuildingsPage() {
                     {formBuildingData.building_type === "custom" && (
                       <>
                         <div>
-                          <Label>Type Name</Label>
+                          <Label className="text-sm font-medium text-gray-700">Type Name</Label>
                           <Input
                             value={formBuildingData.custom_type_name || ""}
                             onChange={(e) =>
@@ -375,10 +433,11 @@ export default function ManageBuildingsPage() {
                               })
                             }
                             required
+                            className="mt-1"
                           />
                         </div>
                         <div>
-                          <Label>Category</Label>
+                          <Label className="text-sm font-medium text-gray-700">Category</Label>
                           <Input
                             value={formBuildingData.category || ""}
                             onChange={(e) =>
@@ -388,13 +447,23 @@ export default function ManageBuildingsPage() {
                               })
                             }
                             required
+                            className="mt-1"
                           />
                         </div>
                       </>
                     )}
 
                     <DialogFooter>
-                      <Button type="submit">Add Building</Button>
+                      <Button type="submit" className="w-full" disabled={isCreating}>
+                        {isCreating ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Adding Building...
+                          </>
+                        ) : (
+                          "Add Building"
+                        )}
+                      </Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
@@ -480,9 +549,9 @@ export default function ManageBuildingsPage() {
 
             <form onSubmit={handleCreateBuilding} className="space-y-4">
               <div>
-                <Label>Building Name</Label>
+                <Label className="text-sm font-medium text-gray-700">Building Name</Label>
                 <Input
-                  value={formBuildingData.building_name}
+                  value={formBuildingData.building_name || ""}
                   onChange={(e) =>
                     setBuildingFormData({
                       ...formBuildingData,
@@ -490,13 +559,14 @@ export default function ManageBuildingsPage() {
                     })
                   }
                   required
+                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label>Street</Label>
+                <Label className="text-sm font-medium text-gray-700">Street</Label>
                 <Input
-                  value={formBuildingData.street}
+                  value={formBuildingData.street || ""}
                   onChange={(e) =>
                     setBuildingFormData({
                       ...formBuildingData,
@@ -504,13 +574,14 @@ export default function ManageBuildingsPage() {
                     })
                   }
                   required
+                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label>Zone</Label>
+                <Label className="text-sm font-medium text-gray-700">Zone</Label>
                 <Input
-                  value={formBuildingData.zone}
+                  value={formBuildingData.zone || ""}
                   onChange={(e) =>
                     setBuildingFormData({
                       ...formBuildingData,
@@ -518,13 +589,14 @@ export default function ManageBuildingsPage() {
                     })
                   }
                   required
+                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label>Pincode</Label>
+                <Label className="text-sm font-medium text-gray-700">Pincode</Label>
                 <Input
-                  value={formBuildingData.pincode}
+                  value={formBuildingData.pincode || ""}
                   onChange={(e) =>
                     setBuildingFormData({
                       ...formBuildingData,
@@ -532,13 +604,14 @@ export default function ManageBuildingsPage() {
                     })
                   }
                   required
+                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label>Building Type</Label>
+                <Label className="text-sm font-medium text-gray-700">Building Type</Label>
                 <Select
-                  value={formBuildingData.building_type}
+                  value={formBuildingData.building_type || ""}
                   onValueChange={(value) =>
                     setBuildingFormData({
                       ...formBuildingData,
@@ -546,7 +619,7 @@ export default function ManageBuildingsPage() {
                     })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -567,7 +640,7 @@ export default function ManageBuildingsPage() {
               {formBuildingData.building_type === "custom" && (
                 <>
                   <div>
-                    <Label>Type Name</Label>
+                    <Label className="text-sm font-medium text-gray-700">Type Name</Label>
                     <Input
                       value={formBuildingData.custom_type_name || ""}
                       onChange={(e) =>
@@ -577,10 +650,11 @@ export default function ManageBuildingsPage() {
                         })
                       }
                       required
+                      className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label>Category</Label>
+                    <Label className="text-sm font-medium text-gray-700">Category</Label>
                     <Input
                       value={formBuildingData.category || ""}
                       onChange={(e) =>
@@ -590,13 +664,23 @@ export default function ManageBuildingsPage() {
                         })
                       }
                       required
+                      className="mt-1"
                     />
                   </div>
                 </>
               )}
 
               <DialogFooter>
-                <Button type="submit">Add Building</Button>
+                <Button type="submit" className="w-full" disabled={isCreating}>
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Adding Building...
+                    </>
+                  ) : (
+                    "Add Building"
+                  )}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -625,9 +709,9 @@ export default function ManageBuildingsPage() {
 
             <form onSubmit={handleUpdateBuilding} className="space-y-4">
               <div>
-                <Label>Building Name</Label>
+                <Label className="text-sm font-medium text-gray-700">Building Name</Label>
                 <Input
-                  value={formBuildingData.building_name}
+                  value={formBuildingData.building_name || ""}
                   onChange={(e) =>
                     setBuildingFormData({
                       ...formBuildingData,
@@ -635,13 +719,14 @@ export default function ManageBuildingsPage() {
                     })
                   }
                   required
+                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label>Street</Label>
+                <Label className="text-sm font-medium text-gray-700">Street</Label>
                 <Input
-                  value={formBuildingData.street}
+                  value={formBuildingData.street || ""}
                   onChange={(e) =>
                     setBuildingFormData({
                       ...formBuildingData,
@@ -649,13 +734,14 @@ export default function ManageBuildingsPage() {
                     })
                   }
                   required
+                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label>Zone</Label>
+                <Label className="text-sm font-medium text-gray-700">Zone</Label>
                 <Input
-                  value={formBuildingData.zone}
+                  value={formBuildingData.zone || ""}
                   onChange={(e) =>
                     setBuildingFormData({
                       ...formBuildingData,
@@ -663,13 +749,14 @@ export default function ManageBuildingsPage() {
                     })
                   }
                   required
+                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label>Pincode</Label>
+                <Label className="text-sm font-medium text-gray-700">Pincode</Label>
                 <Input
-                  value={formBuildingData.pincode}
+                  value={formBuildingData.pincode || ""}
                   onChange={(e) =>
                     setBuildingFormData({
                       ...formBuildingData,
@@ -677,13 +764,14 @@ export default function ManageBuildingsPage() {
                     })
                   }
                   required
+                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label>Building Type</Label>
+                <Label className="text-sm font-medium text-gray-700">Building Type</Label>
                 <Select
-                  value={formBuildingData.building_type}
+                  value={formBuildingData.building_type || ""}
                   onValueChange={(value) =>
                     setBuildingFormData({
                       ...formBuildingData,
@@ -691,7 +779,7 @@ export default function ManageBuildingsPage() {
                     })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -708,7 +796,16 @@ export default function ManageBuildingsPage() {
               </div>
 
               <DialogFooter>
-                <Button type="submit">Update Building</Button>
+                <Button type="submit" className="w-full" disabled={isUpdating}>
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating Building...
+                    </>
+                  ) : (
+                    "Update Building"
+                  )}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>

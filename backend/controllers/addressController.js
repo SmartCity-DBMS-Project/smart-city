@@ -62,10 +62,17 @@ async function handleAddAddressToBuilding(req, res) {
     console.log(`handleAddAddressToBuilding`);
     const building_id = parseInt(req.params.building_id);
 
+    const { flat_no } = req.body;
+    
+    // Validate required fields
+    if (!flat_no || flat_no.trim() === "") {
+      return res.status(400).json({ error: "Flat number is required" });
+    }
+
     const new_address = await prisma.address.create({
         data:{
             building_id: building_id,
-            flat_no: req.body.flat_no,
+            flat_no: flat_no,
         }
     })
     return res.status(200).json(new_address);
@@ -80,6 +87,13 @@ async function handleUpdateAddress(req, res) {
     console.log(`handleUpdateAddress`);
     const building_id = parseInt(req.params.building_id);
     const address_id = parseInt(req.params.address_id);
+    
+    const { flat_no } = req.body;
+    
+    // Validate required fields
+    if (!flat_no || flat_no.trim() === "") {
+      return res.status(400).json({ error: "Flat number is required" });
+    }
 
     const adds = await prisma.address.findUnique({
         where: {
@@ -93,7 +107,7 @@ async function handleUpdateAddress(req, res) {
         new_address = await prisma.address.create({
         data:{
             building_id: building_id,
-            flat_no: req.body.flat_no,
+            flat_no: flat_no,
         }
     })
     }
@@ -103,7 +117,7 @@ async function handleUpdateAddress(req, res) {
                 address_id: address_id,
             },
             data: {
-                flat_no: req.body.flat_no,
+                flat_no: flat_no,
             }
         })
     }
@@ -120,10 +134,20 @@ async function handleDeleteAddress(req, res) {
 
     const building_id = parseInt(req.params.building_id);
     const address_id = parseInt(req.params.address_id);
+    
+    // Check if address exists
+    const existingAddress = await prisma.address.findUnique({
+      where: {
+        address_id: address_id,
+      },
+    });
+    
+    if (!existingAddress) {
+      return res.status(404).json({ error: "Address not found" });
+    }
 
     await prisma.address.delete({
         where: {
-            building_id: building_id,
             address_id: address_id,
         }
     })
@@ -191,101 +215,151 @@ async function handleGetCitizensByAddress(req, res) {
 
 async function handlePostCitizensByAddress(req, res) {
   try {
-    // citizen_id: "",
-    // role: "",
-    // start_date: "",
-    console.log(`handleGetAddressDetails`)
+    const { citizen_id, role } = req.body;
+    console.log(`handlePostCitizensByAddress`, { citizen_id, role });
 
     const address_id = parseInt(req.params.address_id);
+    
+    // Validate required fields
+    if (!citizen_id) {
+      return res.status(400).json({ error: "Citizen ID is required" });
+    }
+    
+    if (!role || role.trim() === "") {
+      return res.status(400).json({ error: "Role is required" });
+    }
 
-    const citizen_id = req.body.citizen_id;
-
+    // Check if citizen exists
     const citizen = await prisma.citizen.findUnique({
         where: {
-            citizen_id: citizen_id,
+            citizen_id: parseInt(citizen_id),
         },
     })
 
     if(!citizen){
-        res.status(500).json({message: "Citizen doesn't exist"});
+        return res.status(400).json({ error: "Citizen doesn't exist" });
+    }
+
+    // Check if the citizen-address relationship already exists
+    const existingRelationship = await prisma.citizen_address.findUnique({
+      where: {
+        citizen_id_address_id: {
+          citizen_id: parseInt(citizen_id),
+          address_id: address_id
+        }
+      }
+    });
+
+    if (existingRelationship) {
+      return res.status(400).json({ error: "Citizen is already linked to this address" });
     }
 
     const citizen_address_data = await prisma.citizen_address.create({
         data: {
-            citizen_id: citizen_id,
+            citizen_id: parseInt(citizen_id),
             address_id: address_id,
-            role: req.body.role,
+            role: role,
         }
     })
     return res.status(200).json(citizen_address_data);
   } catch(error) {
-    console.log(`Failed`);
-    return res.status(500).json({error: error.message});
+    console.log(`Failed`, error);
+    return res.status(500).json({ error: error.message });
   }
 }
 
-async function handlePatchCitizensByAddress(req, res) {
+async function handleUpdateCitizenByAddress(req, res) {
   try {
-    // citizen_id: "",
-    // role: "",
-    console.log(`handlePatchCitizensByAddress`)
+    const { role } = req.body;
+    console.log(`handleUpdateCitizenByAddress`, { role });
 
     const address_id = parseInt(req.params.address_id);
     const citizen_id = parseInt(req.params.citizen_id);
-
-    const citizen = await prisma.citizen.findUnique({
-        where: {
-            citizen_id: citizen_id,
-        },
-    })
-
-    if(!citizen){
-        res.status(500).json({error: error.message, message: "Citizen doesn't exist"});
+    
+    // Validate required fields
+    if (!role || role.trim() === "") {
+      return res.status(400).json({ error: "Role is required" });
     }
 
-    const citizen_address_data = await prisma.citizen_address.update({
-        where: {
-            citizen_id_address_id: { citizen_id, address_id },
-        },
-        data: {
-            role: req.body.role,
+    // Check if the citizen-address relationship exists
+    const existingRelationship = await prisma.citizen_address.findUnique({
+      where: {
+        citizen_id_address_id: {
+          citizen_id: citizen_id,
+          address_id: address_id
         }
-    })
-    return res.status(200).json(citizen_address_data);
+      }
+    });
+
+    if (!existingRelationship) {
+      return res.status(404).json({ error: "Citizen is not linked to this address" });
+    }
+
+    const updated_citizen_address = await prisma.citizen_address.update({
+      where: {
+        citizen_id_address_id: {
+          citizen_id: citizen_id,
+          address_id: address_id
+        }
+      },
+      data: {
+        role: role,
+      }
+    });
+    
+    return res.status(200).json(updated_citizen_address);
   } catch(error) {
-    console.log(`Failed`);
-    return res.status(500).json({error: error.message});
+    console.log(`Failed`, error);
+    return res.status(500).json({ error: error.message });
   }
 }
 
-async function handleDeleteCitizensByAddress(req, res) {
+async function handleDeleteCitizenByAddress(req, res) {
   try {
-    console.log(`handleDeleteCitizensByAddress`)
+    console.log(`handleDeleteCitizenByAddress`);
 
     const address_id = parseInt(req.params.address_id);
     const citizen_id = parseInt(req.params.citizen_id);
 
+    // Check if the citizen-address relationship exists
+    const existingRelationship = await prisma.citizen_address.findUnique({
+      where: {
+        citizen_id_address_id: {
+          citizen_id: citizen_id,
+          address_id: address_id
+        }
+      }
+    });
+
+    if (!existingRelationship) {
+      return res.status(404).json({ error: "Citizen is not linked to this address" });
+    }
+
     await prisma.citizen_address.delete({
-        where: {
-            citizen_id_address_id: { citizen_id, address_id },
-        },
-    })
-    return res.status(200).json({message: "Successfully removed citizen from building"});
+      where: {
+        citizen_id_address_id: {
+          citizen_id: citizen_id,
+          address_id: address_id
+        }
+      }
+    });
+    
+    return res.status(200).json({ message: "Citizen removed from address successfully" });
   } catch(error) {
-    console.log(`Failed`);
-    return res.status(500).json({error: error.message});
+    console.log(`Failed`, error);
+    return res.status(500).json({ error: error.message });
   }
 }
 
 module.exports = {
-    handleGetAllAddresses,
-    handleGetAddressesByBuilding,
-    handleAddAddressToBuilding,
-    handleUpdateAddress,
-    handleDeleteAddress,
-    handleGetAddressDetails,
-    handleGetCitizensByAddress,
-    handlePostCitizensByAddress,
-    handlePatchCitizensByAddress,
-    handleDeleteCitizensByAddress,
+  handleGetAllAddresses,
+  handleGetAddressesByBuilding,
+  handleAddAddressToBuilding,
+  handleUpdateAddress,
+  handleDeleteAddress,
+  handleGetAddressDetails,
+  handleGetCitizensByAddress,
+  handlePostCitizensByAddress,
+  handleUpdateCitizenByAddress,
+  handleDeleteCitizenByAddress
 }

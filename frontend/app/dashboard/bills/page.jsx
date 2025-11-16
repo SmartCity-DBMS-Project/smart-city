@@ -1,5 +1,4 @@
 "use client";
-"use client";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Receipt, Plus, Edit, Trash2, Search, IndianRupee, Calendar, MapPin, AlertCircle, ArrowLeft } from "lucide-react";
+import { Receipt, Plus, Edit, Trash2, Search, IndianRupee, Calendar, MapPin, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -35,6 +34,10 @@ export default function BillsPage() {
     due_date: "",
     status: "PENDING"
   });
+
+  // State for form submission loading
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
@@ -104,8 +107,40 @@ export default function BillsPage() {
     }
   };
 
+  // Validate bill form data
+  const validateBillForm = (data) => {
+    const errors = [];
+    
+    if (!data.address_id) {
+      errors.push("Address is required");
+    }
+    
+    if (!data.bill_type) {
+      errors.push("Bill type is required");
+    }
+    
+    if (!data.amount || isNaN(parseFloat(data.amount)) || parseFloat(data.amount) <= 0) {
+      errors.push("Amount must be a positive number");
+    }
+    
+    if (!data.due_date) {
+      errors.push("Due date is required");
+    }
+    
+    return errors;
+  };
+
   const handleCreateBill = async (e) => {
     e.preventDefault();
+    
+    // Validate form data
+    const errors = validateBillForm(formData);
+    if (errors.length > 0) {
+      alert("Validation errors:\n" + errors.join("\n"));
+      return;
+    }
+    
+    setIsCreating(true);
     try {
       console.log('Creating bill with data:', {
         address_id: parseInt(formData.address_id),
@@ -143,11 +178,22 @@ export default function BillsPage() {
     } catch (err) {
       console.error('Error creating bill:', err);
       alert("Error creating bill: " + err.message);
+    } finally {
+      setIsCreating(false);
     }
   };
 
   const handleUpdateBill = async (e) => {
     e.preventDefault();
+    
+    // Validate form data
+    const errors = validateBillForm(formData);
+    if (errors.length > 0) {
+      alert("Validation errors:\n" + errors.join("\n"));
+      return;
+    }
+    
+    setIsUpdating(true);
     try {
       const response = await fetch(`http://localhost:8000/api/bills/${selectedBill.bill_id}`, {
         method: "PATCH",
@@ -167,6 +213,8 @@ export default function BillsPage() {
       resetForm();
     } catch (err) {
       alert("Error: " + err.message);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -320,21 +368,24 @@ export default function BillsPage() {
 
         <form onSubmit={handleCreateBill}>
           <div className="grid gap-4 py-4">
-
-            <AddressSearchSelect
-              id="address_id"
-              value={formData.address_id}
-              onChange={(value) =>
-                setFormData({ ...formData, address_id: value })
-              }
-              required
-            />
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Address</Label>
+              <AddressSearchSelect
+                id="address_id"
+                value={formData.address_id}
+                onChange={(value) =>
+                  setFormData({ ...formData, address_id: value })
+                }
+                required
+                className="mt-1"
+              />
+            </div>
 
             <div>
-              <Label htmlFor="bill_type">Bill Type</Label>
+              <Label className="text-sm font-medium text-gray-700">Bill Type</Label>
               <select
                 id="bill_type"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs mt-1"
                 value={formData.bill_type || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, bill_type: e.target.value })
@@ -351,7 +402,7 @@ export default function BillsPage() {
             </div>
 
             <div>
-              <Label htmlFor="amount">Amount</Label>
+              <Label className="text-sm font-medium text-gray-700">Amount</Label>
               <Input
                 id="amount"
                 type="number"
@@ -361,11 +412,12 @@ export default function BillsPage() {
                   setFormData({ ...formData, amount: e.target.value })
                 }
                 required
+                className="mt-1"
               />
             </div>
 
             <div>
-              <Label htmlFor="due_date">Due Date</Label>
+              <Label className="text-sm font-medium text-gray-700">Due Date</Label>
               <Input
                 id="due_date"
                 type="date"
@@ -374,14 +426,15 @@ export default function BillsPage() {
                   setFormData({ ...formData, due_date: e.target.value })
                 }
                 required
+                className="mt-1"
               />
             </div>
 
             <div>
-              <Label htmlFor="status">Status</Label>
+              <Label className="text-sm font-medium text-gray-700">Status</Label>
               <select
                 id="status"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs mt-1"
                 value={formData.status}
                 onChange={(e) =>
                   setFormData({ ...formData, status: e.target.value })
@@ -396,7 +449,16 @@ export default function BillsPage() {
           </div>
 
           <DialogFooter>
-            <Button type="submit">Create Bill</Button>
+            <Button type="submit" className="w-full" disabled={isCreating}>
+              {isCreating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Bill...
+                </>
+              ) : (
+                "Create Bill"
+              )}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -537,18 +599,20 @@ export default function BillsPage() {
             <form onSubmit={handleUpdateBill}>
               <div className="grid gap-4 py-4">
                 <div>
+                  <Label className="text-sm font-medium text-gray-700">Address</Label>
                   <AddressSearchSelect
                     id="edit_address_id"
                     value={formData.address_id}
                     onChange={(value) => setFormData({...formData, address_id: value})}
                     required
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit_bill_type">Bill Type</Label>
+                  <Label className="text-sm font-medium text-gray-700">Bill Type</Label>
                   <select 
                     id="edit_bill_type" 
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs mt-1"
                     value={formData.bill_type || ""} 
                     onChange={(e) => setFormData({...formData, bill_type: e.target.value})}
                     required
@@ -562,16 +626,16 @@ export default function BillsPage() {
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="edit_amount">Amount</Label>
-                  <Input id="edit_amount" type="number" step="0.01" value={formData.amount || ""} onChange={(e) => setFormData({...formData, amount: e.target.value})} required />
+                  <Label className="text-sm font-medium text-gray-700">Amount</Label>
+                  <Input id="edit_amount" type="number" step="0.01" value={formData.amount || ""} onChange={(e) => setFormData({...formData, amount: e.target.value})} required className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="edit_due_date">Due Date</Label>
-                  <Input id="edit_due_date" type="date" value={formData.due_date || ""} onChange={(e) => setFormData({...formData, due_date: e.target.value})} required />
+                  <Label className="text-sm font-medium text-gray-700">Due Date</Label>
+                  <Input id="edit_due_date" type="date" value={formData.due_date || ""} onChange={(e) => setFormData({...formData, due_date: e.target.value})} required className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="edit_status">Status</Label>
-                  <select id="edit_status" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs" value={formData.status || "PENDING"} onChange={(e) => setFormData({...formData, status: e.target.value})}>
+                  <Label className="text-sm font-medium text-gray-700">Status</Label>
+                  <select id="edit_status" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs mt-1" value={formData.status || "PENDING"} onChange={(e) => setFormData({...formData, status: e.target.value})}>
                     <option value="PENDING">Pending</option>
                     <option value="PAID">Paid</option>
                     <option value="OVERDUE">Overdue</option>
@@ -579,7 +643,16 @@ export default function BillsPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">Update Bill</Button>
+                <Button type="submit" className="w-full" disabled={isUpdating}>
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating Bill...
+                    </>
+                  ) : (
+                    "Update Bill"
+                  )}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>

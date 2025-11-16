@@ -9,8 +9,8 @@ const {
     handleGetAddressDetails,
     handleGetCitizensByAddress,
     handlePostCitizensByAddress,
-    handlePatchCitizensByAddress,
-    handleDeleteCitizensByAddress,
+    handleUpdateCitizenByAddress,
+    handleDeleteCitizenByAddress,
 } = require('../controllers/addressController');
 
 const router = express.Router({ mergeParams: true });
