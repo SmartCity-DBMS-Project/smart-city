@@ -94,14 +94,12 @@ async function handleLogout(req, res){
 
 async function handleMe(req, res) {
   try {
-    // Get user data from JWT token
     const tokenData = getUser(req.cookies.token);
     
     if (!tokenData || !tokenData.email) {
       return res.status(401).json({error: "Not logged in"});
     }
-    
-    // Fetch citizen details from database
+
     const loginInfo = await prisma.login.findUnique({
       where: {
         email: tokenData.email,
@@ -122,12 +120,11 @@ async function handleMe(req, res) {
         }
       }
     });
-    
+
     if (!loginInfo || !loginInfo.citizen) {
       return res.status(404).json({error: "User not found"});
     }
-    
-    // Format the response data
+
     const citizenData = {
       email: loginInfo.email,
       role: loginInfo.role,
@@ -141,21 +138,23 @@ async function handleMe(req, res) {
         role: ca.role,
         start_date: ca.start_date,
         end_date: ca.end_date,
-        street: ca.address.street,
-        zone: ca.address.zone,
+        street: ca.address.building?.street,
+        zone: ca.address.building?.zone,
         flat_no: ca.address.flat_no,
-        city: ca.address.city,
-        pincode: ca.address.pincode,
-        building_name: ca.address.building?.b_name
+        city: ca.address.building?.city,
+        pincode: ca.address.building?.pincode,
+        building_name: ca.address.building?.building_name
       }))
     };
-    
+
     res.status(200).json(citizenData);
-  } catch(error) {
+
+  } catch (error) {
     console.error("Error fetching user profile:", error);
     res.status(500).json({error: "Failed to fetch profile data"});
   }
 }
+
 
 module.exports = {
     handleLogin,

@@ -274,83 +274,137 @@ export default function BillsPage() {
     <main className="flex flex-col items-center min-h-screen w-full">
       <section className="w-full py-12 md:py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <div className="flex items-center gap-4 mb-8">
-            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
+          {/* BACK BUTTON (separate row) */}
+<div className="mb-4">
+  <Button
+    variant="outline"
+    onClick={() => router.back()}
+    className="flex items-center gap-2"
+  >
+    <ArrowLeft className="h-4 w-4" />
+    Back
+  </Button>
+</div>
+
+{/* TITLE + CREATE BILL (same row) */}
+<div className="flex items-center justify-between mb-8">
+
+  {/* CENTERED TITLE */}
+  <div className="flex-1 text-left">
+    <h1 className="text-3xl font-bold text-primary mb-2">Bills Management</h1>
+    <p className="text-muted-foreground">View and manage your utility bills</p>
+  </div>
+
+  {/* CREATE BILL — right side */}
+  {user?.role === "ADMIN" && (
+    <Dialog
+      open={isCreateDialogOpen}
+      onOpenChange={(open) => {
+        setIsCreateDialogOpen(open);
+        if (open) resetForm();
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button className="bg-acc-blue hover:bg-acc-blue/90 whitespace-nowrap ml-4">
+          <Plus className="h-4 w-4 mr-2" />
+          Create Bill
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Bill</DialogTitle>
+          <DialogDescription>Add a new bill to the system</DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleCreateBill}>
+          <div className="grid gap-4 py-4">
+
+            <AddressSearchSelect
+              id="address_id"
+              value={formData.address_id}
+              onChange={(value) =>
+                setFormData({ ...formData, address_id: value })
+              }
+              required
+            />
+
             <div>
-              <h1 className="text-3xl font-bold text-primary mb-2">Bills Management</h1>
-              <p className="text-muted-foreground">View and manage your utility bills</p>
+              <Label htmlFor="bill_type">Bill Type</Label>
+              <select
+                id="bill_type"
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                value={formData.bill_type || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, bill_type: e.target.value })
+                }
+                required
+              >
+                <option value="">Select bill type</option>
+                {utilityTypes.map((u) => (
+                  <option key={u.utility_id} value={u.type}>
+                    {u.type}
+                  </option>
+                ))}
+              </select>
             </div>
-            {user?.role === "ADMIN" && (
-              <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
-                setIsCreateDialogOpen(open);
-                if (open) resetForm();
-              }}>
-                <DialogTrigger asChild>
-                  <Button className="bg-acc-blue hover:bg-acc-blue/90">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Bill
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Bill</DialogTitle>
-                    <DialogDescription>Add a new bill to the system</DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleCreateBill}>
-                    <div className="grid gap-4 py-4">
-                      <div>
-                        <AddressSearchSelect
-                          id="address_id"
-                          value={formData.address_id}
-                          onChange={(value) => setFormData({...formData, address_id: value})}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="bill_type">Bill Type</Label>
-                        <select 
-                          id="bill_type" 
-                          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
-                          value={formData.bill_type || ""} 
-                          onChange={(e) => setFormData({...formData, bill_type: e.target.value})}
-                          required
-                        >
-                          <option value="">Select a bill type</option>
-                          {utilityTypes.map((utility) => (
-                            <option key={utility.utility_id} value={utility.type}>
-                              {utility.type}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <Label htmlFor="amount">Amount</Label>
-                        <Input id="amount" type="number" step="0.01" value={formData.amount || ""} onChange={(e) => setFormData({...formData, amount: e.target.value})} required />
-                      </div>
-                      <div>
-                        <Label htmlFor="due_date">Due Date</Label>
-                        <Input id="due_date" type="date" value={formData.due_date || ""} onChange={(e) => setFormData({...formData, due_date: e.target.value})} required />
-                      </div>
-                      <div>
-                        <Label htmlFor="status">Status</Label>
-                        <select id="status" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs" value={formData.status || "PENDING"} onChange={(e) => setFormData({...formData, status: e.target.value})}>
-                          <option value="PENDING">Pending</option>
-                          <option value="PAID">Paid</option>
-                          <option value="OVERDUE">Overdue</option>
-                        </select>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button type="submit">Create Bill</Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            )}
+
+            <div>
+              <Label htmlFor="amount">Amount</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                value={formData.amount || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, amount: e.target.value })
+                }
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="due_date">Due Date</Label>
+              <Input
+                id="due_date"
+                type="date"
+                value={formData.due_date || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, due_date: e.target.value })
+                }
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <select
+                id="status"
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value })
+                }
+              >
+                <option value="PENDING">Pending</option>
+                <option value="PAID">Paid</option>
+                <option value="OVERDUE">Overdue</option>
+              </select>
+            </div>
+
           </div>
+
+          <DialogFooter>
+            <Button type="submit">Create Bill</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )}
+
+</div>
+
+
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="border-t-4 border-t-acc-blue">
@@ -395,7 +449,7 @@ export default function BillsPage() {
 
       <section className="w-full py-12 bg-card">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <Card>
+          <Card className="bg-background">
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
