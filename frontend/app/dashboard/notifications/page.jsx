@@ -173,6 +173,7 @@ export default function NotificationsPage() {
             <p className="text-muted-foreground">
               View and Delete notifications
             </p>
+            <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full"></div>
           </div>
         </div>
 
