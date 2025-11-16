@@ -119,7 +119,7 @@ export default function utilityPage() {
             {/* Content Section - Using homepage pattern with bg-card */}
             <section className="w-full py-12 bg-card">
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-                    <div className="bg-card rounded-2xl p-8 w-full max-w-6xl border border-input shadow-sm mx-auto mb-8">
+                    <div className="bg-white rounded-2xl p-8 w-full max-w-6xl border border-input shadow-sm mx-auto mb-8">
                         <div className="text-center">
                             <h2 className="text-2xl font-bold text-primary mb-4">Service Information</h2>
                             <p className="text-muted-foreground mb-6">
@@ -145,7 +145,7 @@ export default function utilityPage() {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {buildings.map((building) => (
-                                    <div key={building.building_id} className="bg-card rounded-xl border border-input shadow-sm p-6 hover:shadow-md transition-shadow">
+                                    <div key={building.building_id} className="bg-white rounded-xl border border-input shadow-sm p-6 hover:shadow-md transition-shadow">
                                         <div className="flex flex-col h-full">
                                             <h4 className="text-xl font-bold text-primary mb-2">
                                                 {building.building_name || 'Unnamed Building'}

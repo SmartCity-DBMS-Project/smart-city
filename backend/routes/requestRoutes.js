@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { checkAuthentication, authorizeRoles } = require('../middlewares/authMiddlewares');
 const { 
   getAllRequests,
   getRequestsByCitizenId,
@@ -8,6 +9,8 @@ const {
   updateRequest,
   deleteRequest
 } = require('../controllers/requestController');
+
+router.use(checkAuthentication);
 
 // Get all requests
 router.get('/', getAllRequests);

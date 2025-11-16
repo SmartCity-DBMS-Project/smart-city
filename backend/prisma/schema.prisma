@@ -37,7 +37,7 @@ model building {
   type_id       Int?
   street        String?        @db.VarChar(100)
   zone          String?        @db.VarChar(100)
-  pincode       String?        @db.VarChar(10)
+  pincode       Int?
   address       address[]
   building_type building_type? @relation(fields: [type_id], references: [type_id], onDelete: Cascade)
 }
