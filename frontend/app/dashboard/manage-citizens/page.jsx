@@ -31,6 +31,7 @@ import {
 import { Plus, Search, User, Edit, Trash2 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
+import { email } from "zod";
 
 export default function ManageCitizensPage() {
   const { user, loading } = useUser();
@@ -50,6 +51,7 @@ export default function ManageCitizensPage() {
     phone: "",
     gender: "",
     dob: "",
+    email: "",
   });
 
   useEffect(() => {
@@ -98,6 +100,7 @@ export default function ManageCitizensPage() {
         phone: formData.phone,
         gender: formData.gender,
         dob: formData.dob,
+        email: formData.email,
       };
 
       const response = await fetch("http://localhost:8000/api/citizens", {
@@ -129,6 +132,7 @@ export default function ManageCitizensPage() {
         phone: formData.phone,
         gender: formData.gender,
         dob: formData.dob,
+        email: formData.email,
       };
 
       const response = await fetch(`http://localhost:8000/api/citizens/${selectedCitizen.citizen_id}`, {
@@ -285,6 +289,20 @@ export default function ManageCitizensPage() {
                         <option value="F">Female</option>
                         <option value="O">Other</option>
                       </select>
+                    </div>
+
+                    <div>
+                      <Label>Email</Label>
+                      <Input
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            email: e.target.value,
+                          })
+                        }
+                        required
+                      />
                     </div>
 
                     <div>
@@ -456,6 +474,20 @@ export default function ManageCitizensPage() {
                   <option value="F">Female</option>
                   <option value="O">Other</option>
                 </select>
+              </div>
+
+              <div>
+                <Label>Email</Label>
+                <Input
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      email: e.target.value,
+                    })
+                  }
+                  required
+                />
               </div>
 
               <div>
