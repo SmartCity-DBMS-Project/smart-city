@@ -94,7 +94,7 @@ export default function AddressDetailsPage({ params }) {
     try {
       console.log("Fetching address details with ->", { building_id, address_id });
       const res = await fetch(
-        `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}/addresses/${address_id}`,
         { credentials: "include" }
       );
       console.log("Address details response ->", res.status);
@@ -116,7 +116,7 @@ export default function AddressDetailsPage({ params }) {
       setIsLoading(true);
       console.log("Fetching citizens with ->", { building_id, address_id });
       const res = await fetch(
-        `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}/citizens`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}/addresses/${address_id}/citizens`,
         { credentials: "include" }
       );
       console.log("Citizens response ->", res.status);
@@ -138,7 +138,7 @@ export default function AddressDetailsPage({ params }) {
   const fetchCitizenList = async () => {
     try {
       console.log("Fetching citizen list");
-      const res = await fetch(`http://localhost:8000/api/citizens`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/citizens`, {
         credentials: "include",
       });
       console.log("Citizen list response ->", res.status);
@@ -185,7 +185,7 @@ export default function AddressDetailsPage({ params }) {
     setIsAdding(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}/citizens`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}/addresses/${address_id}/citizens`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -223,7 +223,7 @@ export default function AddressDetailsPage({ params }) {
     setIsUpdating(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}/citizens/${selectedCitizen.citizen_id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}/addresses/${address_id}/citizens/${selectedCitizen.citizen_id}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -251,7 +251,7 @@ export default function AddressDetailsPage({ params }) {
     if (!confirm("Remove this citizen from this address?")) return;
     try {
       const res = await fetch(
-        `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}/citizens/${citizenId}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}/addresses/${address_id}/citizens/${citizenId}`,
         {
           method: "DELETE",
           credentials: "include",

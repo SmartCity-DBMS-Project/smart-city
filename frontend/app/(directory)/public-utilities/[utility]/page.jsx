@@ -14,7 +14,7 @@ export default function utilityPage() {
         async function fetchData() {
             try {
                 setLoading(true);
-                const response = await fetch(`http://localhost:8000/api/buildings/types/${utility}`);
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/types/${utility}`);
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Fetched buildings:', data);

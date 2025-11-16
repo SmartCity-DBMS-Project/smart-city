@@ -10,7 +10,7 @@ export default function TestApiPage() {
     async function fetchData() {
       try {
         console.log('Fetching data from backend...');
-        const response = await fetch('http://localhost:8000/api/buildings/hospital');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/hospital`);
         console.log('Response status:', response.status);
         
         if (response.ok) {

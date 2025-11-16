@@ -86,7 +86,7 @@ export default function ManageBuildingsPage() {
   const fetchBuildings = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:8000/api/buildings", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings`, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch buildings");
@@ -102,7 +102,7 @@ export default function ManageBuildingsPage() {
   // 🔹 Fetch available building types
   const fetchBuildingTypes = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/buildings/building-type", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/building-type`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -181,7 +181,7 @@ export default function ManageBuildingsPage() {
             }),
       };
 
-      const response = await fetch("http://localhost:8000/api/buildings", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -199,27 +199,66 @@ export default function ManageBuildingsPage() {
     }
   };
 
-  // 🔹 Delete building
-  const handleDeleteBuilding = async (buildingId) => {
-    try {
-      const response = await fetch(`http://localhost:8000/api/buildings/${buildingId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (!response.ok) throw new Error("Failed to delete building");
-      await fetchBuildings(); // Refresh the buildings list
-    } catch (err) {
-      alert("Error: " + err.message);
-    }
-  };
-
-  // Temporary fix for missing function
   // 🔹 Update building
   const handleUpdateBuilding = async (e) => {
     e.preventDefault();
-    // This function is no longer used but kept to prevent errors
-    console.log("Update building function called but not implemented");
+    
+    // Validate form data
+    const errors = validateBuildingForm(formBuildingData);
+    if (errors.length > 0) {
+      alert("Validation errors:\n" + errors.join("\n"));
+      return;
+    }
+    
+    setIsUpdating(true);
+    try {
+      const isCustomType = formBuildingData.building_type === "custom";
+      const requestBody = {
+        building_name: formBuildingData.building_name,
+        street: formBuildingData.street,
+        zone: formBuildingData.zone,
+        pincode: formBuildingData.pincode,
+        ...(isCustomType
+          ? {
+              building_type: formBuildingData.custom_type_name,
+              category: formBuildingData.category,
+            }
+          : {
+              type_id: Number(formBuildingData.building_type),
+            }),
+      };
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${selectedBuilding.building_id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) throw new Error("Failed to update building");
+      await fetchBuildings();
+      setIsEditDialogOpen(false);
+      resetBuildingForm();
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // 🔹 Delete building
+  const handleDeleteBuilding = async (buildingId) => {
+    if (!confirm("Delete this building?")) return;
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${buildingId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to delete building");
+      await fetchBuildings();
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
   };
 
   const resetBuildingForm = () =>

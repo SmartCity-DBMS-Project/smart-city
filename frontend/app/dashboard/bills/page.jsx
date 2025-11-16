@@ -46,7 +46,7 @@ export default function BillsPage() {
   // Fetch utility types
   const fetchUtilityTypes = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/bills/utility-types", { 
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/bills/utility-types`, { 
         method: "GET", 
         credentials: "include" 
       });
@@ -61,7 +61,7 @@ export default function BillsPage() {
   // Fetch addresses
   const fetchAddresses = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/bills/addresses", { 
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/bills/addresses`, { 
         method: "GET", 
         credentials: "include" 
       });
@@ -95,7 +95,7 @@ export default function BillsPage() {
   const fetchBills = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:8000/api/bills", { method: "GET", credentials: "include" });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/bills`, { method: "GET", credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch bills");
       const data = await response.json();
       setBills(data);
@@ -150,7 +150,7 @@ export default function BillsPage() {
         status: formData.status
       });
       
-      const response = await fetch("http://localhost:8000/api/bills", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/bills`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -195,7 +195,7 @@ export default function BillsPage() {
     
     setIsUpdating(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/bills/${selectedBill.bill_id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/bills/${selectedBill.bill_id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -221,7 +221,7 @@ export default function BillsPage() {
   const handleDeleteBill = async (billId) => {
     if (!confirm("Delete this bill?")) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/bills/${billId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/bills/${billId}`, {
         method: "DELETE",
         credentials: "include"
       });

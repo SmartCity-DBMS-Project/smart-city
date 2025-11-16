@@ -70,7 +70,7 @@ export default function RequestsPage() {
   const fetchRequests = async () => {
     try {
       setIsLoading(true);
-      let url = "http://localhost:8000/api/requests";
+      let url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/requests`;
       
       // If user is a citizen, only fetch their requests
       if (user?.role === "CITIZEN") {
@@ -98,7 +98,7 @@ export default function RequestsPage() {
       setUtilitiesLoading(true);
       setUtilitiesError(null);
       
-      const response = await fetch("http://localhost:8000/api/utilities/types", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/utilities/types`, {
         method: "GET",
         credentials: "include"
       });
@@ -143,7 +143,7 @@ export default function RequestsPage() {
     
     setIsCreating(true);
     try {
-      const response = await fetch("http://localhost:8000/api/requests", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/requests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -177,7 +177,7 @@ export default function RequestsPage() {
     
     setIsUpdating(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/requests/${selectedRequest.request_id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/requests/${selectedRequest.request_id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -206,13 +206,19 @@ export default function RequestsPage() {
   const handleDeleteRequest = async (requestId) => {
     if (!confirm("Delete this request?")) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/requests/${requestId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/requests/${requestId}`, {
         method: "DELETE",
         credentials: "include"
       });
-      if (!response.ok) throw new Error("Failed to delete request");
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Failed to delete request" }));
+        throw new Error(errorData.error || `Failed to delete request: ${response.status} ${response.statusText}`);
+      }
+      
       await fetchRequests();
     } catch (err) {
+      console.error("Delete request error:", err);
       alert("Error: " + err.message);
     }
   };

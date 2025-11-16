@@ -34,7 +34,7 @@ export default function ProfilePage() {
 
   const fetchProfileData = async () => {
     try {
-      const response = await fetch("http://localhost:8000/auth/me", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/me`, {
         credentials: "include",
       });
 
@@ -64,7 +64,7 @@ export default function ProfilePage() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/auth/change-password/${profileData.email}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/change-password/${profileData.email}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

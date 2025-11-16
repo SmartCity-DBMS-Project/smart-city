@@ -17,9 +17,11 @@ const cookieParser = require("cookie-parser");
 const app = express();
 app.use(cookieParser());
 
-const whiteList = [
-  'http://localhost:3000'
-]
+const whiteList = process.env.WHITELIST_URLS.split(',');
+
+// const whiteList = [
+//  'http://localhost:3000'
+// ]
 
 // Enable CORS for all routes
 app.use(cors({

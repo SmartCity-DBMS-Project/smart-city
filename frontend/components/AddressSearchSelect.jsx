@@ -31,7 +31,7 @@ export default function AddressSearchSelect({
   useEffect(() => {
     async function fetchAddresses() {
       try {
-        const response = await fetch("http://localhost:8000/api/addresses/all", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/addresses/all`, {
           method: "GET",
           credentials: "include" // if your backend uses cookies/auth
         });

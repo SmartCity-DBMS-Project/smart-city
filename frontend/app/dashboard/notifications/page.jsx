@@ -18,7 +18,7 @@ export default function NotificationsPage() {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/api/notifications', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/notifications`, {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -36,7 +36,7 @@ export default function NotificationsPage() {
 
   const deleteNotification = async (id) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/notifications/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/notifications/${id}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

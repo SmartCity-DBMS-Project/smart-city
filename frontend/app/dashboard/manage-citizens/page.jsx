@@ -89,7 +89,7 @@ export default function ManageCitizensPage() {
   const fetchCitizens = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("http://localhost:8000/api/citizens", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/citizens`, {
         credentials: "include",
       });
 
@@ -160,7 +160,7 @@ export default function ManageCitizensPage() {
     
     setIsCreating(true);
     try {
-      const response = await fetch("http://localhost:8000/api/citizens", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/citizens`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -201,21 +201,18 @@ export default function ManageCitizensPage() {
     
     setIsUpdating(true);
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/citizens/${selectedCitizen.citizen_id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            full_name: formData.full_name,
-            phone: formData.phone,
-            gender: formData.gender,
-            dob: formData.dob,
-            email: formData.email,
-          }),
-        }
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/citizens/${selectedCitizen.citizen_id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          full_name: formData.full_name,
+          phone: formData.phone,
+          gender: formData.gender,
+          dob: formData.dob,
+          email: formData.email,
+        }),
+      });
 
       if (!response.ok) {
         const errData = await response.json();
@@ -233,23 +230,15 @@ export default function ManageCitizensPage() {
   };
 
   // Delete citizen
-  const handleDeleteCitizen = async (id) => {
+  const handleDeleteCitizen = async (citizenId) => {
     if (!confirm("Delete this citizen?")) return;
-
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/citizens/${id}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/citizens/${citizenId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Failed to delete");
-      }
-
+      if (!response.ok) throw new Error("Failed to delete citizen");
       await fetchCitizens();
     } catch (err) {
       alert("Error: " + err.message);

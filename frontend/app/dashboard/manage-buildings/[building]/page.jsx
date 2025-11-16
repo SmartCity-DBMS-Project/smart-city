@@ -79,7 +79,7 @@ export default function BuildingDetailsPage({ params }) {
   // 🔹 Fetch building types
   const fetchBuildingTypes = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/buildings/building-type", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/building-type`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -92,7 +92,7 @@ export default function BuildingDetailsPage({ params }) {
   // 🔹 Fetch building details
   const fetchBuildingDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}`, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch building details");
@@ -116,7 +116,7 @@ export default function BuildingDetailsPage({ params }) {
   const fetchBuildingAddresses = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}/addresses`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}/addresses`, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch building addresses");
@@ -141,7 +141,7 @@ export default function BuildingDetailsPage({ params }) {
         type_id: Number(formBuildingData.building_type),
       };
 
-      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -160,7 +160,7 @@ export default function BuildingDetailsPage({ params }) {
   const handleDeleteBuilding = async () => {
     if (!confirm("Are you sure you want to delete this building? This action cannot be undone.")) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -179,7 +179,7 @@ export default function BuildingDetailsPage({ params }) {
       const requestBody = {
         flat_no: formAddressData.flat_no,
       };
-      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}/addresses`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}/addresses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -202,7 +202,7 @@ export default function BuildingDetailsPage({ params }) {
       const requestBody = {
         flat_no: formAddressData.flat_no,
       };
-      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}/addresses/${selectedAddress.address_id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}/addresses/${selectedAddress.address_id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -222,7 +222,7 @@ export default function BuildingDetailsPage({ params }) {
   const handleDeleteAddress = async (addressId) => {
     if (!confirm("Delete this address?")) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/buildings/${building_id}/addresses/${addressId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/buildings/${building_id}/addresses/${addressId}`, {
         method: "DELETE",
         credentials: "include",
       });
