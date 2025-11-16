@@ -4,33 +4,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function Page(){
     const representatives = [
         {
-            name: "Mayor John Smith",
+            name: "Muzammil",
             position: "City Mayor",
-            district: "At-Large",
+            district: "Gotham",
             phone: "(123) 456-7100",
             email: "mayor@smartcity.gov",
             office: "City Hall, Room 100"
         },
         {
-            name: "Jane Doe",
-            position: "City Councilor",
-            district: "District 1",
+            name: "Anish",
+            position: "City Mental Health Head",
+            district: "Shutter Island",
             phone: "(123) 456-7101",
             email: "council1@smartcity.gov",
             office: "City Hall, Room 101"
         },
         {
-            name: "Robert Johnson",
+            name: "Vignesh",
             position: "City Councilor",
-            district: "District 2",
+            district: "Watson",
             phone: "(123) 456-7102",
             email: "council2@smartcity.gov",
             office: "City Hall, Room 102"
         },
         {
-            name: "Sarah Williams",
-            position: "City Councilor",
-            district: "District 3",
+            name: "Pranay",
+            position: "City Advisor",
+            district: "Wakanda",
             phone: "(123) 456-7103",
             email: "council3@smartcity.gov",
             office: "City Hall, Room 103"
