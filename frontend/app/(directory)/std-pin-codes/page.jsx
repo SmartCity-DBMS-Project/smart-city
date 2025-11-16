@@ -61,7 +61,7 @@ export default function Page(){
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                         {codes.map((code, index) => (
-                            <Card key={index} className="hover:shadow-lg transition-all duration-300 border-t-4 border-t-acc-blue bg-card">
+                            <Card key={index} className="hover:shadow-lg transition-all duration-300 border-t-4 border-t-acc-blue bg-white">
                                 <CardHeader>
                                     <CardTitle className="text-xl font-bold flex items-center">
                                         <MapPin className="h-5 w-5 mr-2 text-acc-blue" />
@@ -71,14 +71,14 @@ export default function Page(){
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-background p-3 rounded-lg">
+                                        <div className="bg-card p-3 rounded-lg">
                                             <div className="flex items-center text-sm text-muted-foreground mb-1">
                                                 <Hash className="h-4 w-4 mr-1" />
                                                 PIN Code
                                             </div>
                                             <div className="font-bold text-lg">{code.pinCode}</div>
                                         </div>
-                                        <div className="bg-background p-3 rounded-lg">
+                                        <div className="bg-card p-3 rounded-lg">
                                             <div className="flex items-center text-sm text-muted-foreground mb-1">
                                                 <Hash className="h-4 w-4 mr-1" />
                                                 STD Code

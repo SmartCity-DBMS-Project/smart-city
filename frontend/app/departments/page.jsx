@@ -87,7 +87,7 @@ export default function DepartmentsPage() {
                 href={`/departments/${dept.slug}`}
                 className="block"
               >
-                <Card.Card className="h-full hover:shadow-lg transition-all duration-300 border-t-4 border-t-acc-blue bg-card">
+                <Card.Card className="h-full hover:shadow-lg transition-all duration-300 border-t-4 border-t-acc-blue bg-white">
                   <Card.CardHeader className="p-6">
                     <div className="mb-4 flex justify-center">
                       {dept.icon}

@@ -29,7 +29,6 @@ export default function Page(){
                 {name: "Postal Services", link: "postal_office", icon: "Mailbox", description: "Mail and postal services"},
                 {name: "Libraries", link: "library", icon: "Book", description: "Public libraries and resources"},
                 {name: "Police Stations", link: "police_station", icon: "Shield", description: "Law enforcement services"},
-                {name: "Utilities", link: "utilities", icon: "Lightbulb", description: "Electricity, water, and gas services"},
                 {name: "Transportation", link: "transportation", icon: "Train", description: "Public transit and transportation"}
             ];
             
@@ -142,7 +141,7 @@ export default function Page(){
                           href={`/public-utilities/${util.link}`}
                           className="block"
                         >
-                          <Card.Card className="h-full hover:shadow-lg transition-all duration-300 border-t-4 border-t-acc-blue bg-card hover:border-t-acc-blue/80">
+                          <Card.Card className="h-full hover:shadow-lg transition-all duration-300 border-t-4 border-t-acc-blue bg-white hover:border-t-acc-blue/80">
                             <Card.CardHeader className="p-6">
                               <div className="mb-4 flex justify-center">
                                 {getIconComponent(util.icon)}

@@ -75,7 +75,7 @@ export default function Home() {
           </div>
           <div className="mx-auto grid gap-6 py-12 md:grid-cols-2 lg:grid-cols-3 justify-items-center">
             {features.map((feature, index) => (
-              <Card key={index} className="flex flex-col items-center text-center p-6 transition-all hover:shadow-lg hover:border-acc-blue/50 w-full max-w-xs bg-card">
+              <Card key={index} className="flex flex-col items-center text-center p-6 transition-all hover:shadow-lg hover:border-acc-blue/50 w-full max-w-xs bg-white">
                 <div className="mb-4 flex justify-center">
                   {feature.icon}
                 </div>
@@ -107,26 +107,6 @@ export default function Home() {
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section - Full width with distinct darker color */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-acc-green/20">
-        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <div className="grid gap-6 lg:grid-cols-3 text-center">
-            <div className="space-y-2">
-              <h3 className="text-3xl font-bold text-acc-green">50+</h3>
-              <p className="text-muted-foreground">City Services</p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-3xl font-bold text-acc-green">24/7</h3>
-              <p className="text-muted-foreground">Access to Information</p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-3xl font-bold text-acc-green">100k+</h3>
-              <p className="text-muted-foreground">Citizens Served</p>
-            </div>
           </div>
         </div>
       </section>
