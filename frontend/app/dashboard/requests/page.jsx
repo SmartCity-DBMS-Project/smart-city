@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Plus, Edit, Trash2, Search, AlertCircle, ArrowLeft, User, Calendar } from "lucide-react";
+import { FileText, Plus, Edit, Trash2, Search, AlertCircle, ArrowLeft, User, Calendar, Loader2 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 
@@ -33,6 +33,10 @@ export default function RequestsPage() {
   const [utilitiesLoading, setUtilitiesLoading] = useState(true);
   const [utilitiesError, setUtilitiesError] = useState(null);
   const [statusFilter, setStatusFilter] = useState("ALL");
+  
+  // State for form submission loading
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   
   useEffect(() => {
     if (!loading && !user) router.push("/login");
@@ -112,8 +116,32 @@ export default function RequestsPage() {
     }
   };
 
+  // Validate request form data
+  const validateRequestForm = (data) => {
+    const errors = [];
+    
+    if (!data.service_type) {
+      errors.push("Service type is required");
+    }
+    
+    if (!data.details || data.details.trim() === "") {
+      errors.push("Details are required");
+    }
+    
+    return errors;
+  };
+
   const handleCreateRequest = async (e) => {
     e.preventDefault();
+    
+    // Validate form data
+    const errors = validateRequestForm(formData);
+    if (errors.length > 0) {
+      alert("Validation errors:\n" + errors.join("\n"));
+      return;
+    }
+    
+    setIsCreating(true);
     try {
       const response = await fetch("http://localhost:8000/api/requests", {
         method: "POST",
@@ -139,11 +167,15 @@ export default function RequestsPage() {
       resetForm();
     } catch (err) {
       alert("Error: " + err.message);
+    } finally {
+      setIsCreating(false);
     }
   };
 
   const handleUpdateRequest = async (e) => {
     e.preventDefault();
+    
+    setIsUpdating(true);
     try {
       const response = await fetch(`http://localhost:8000/api/requests/${selectedRequest.request_id}`, {
         method: "PATCH",
@@ -166,6 +198,8 @@ export default function RequestsPage() {
     } catch (err) {
       console.error("Update request error:", err);
       alert("Error: " + err.message);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -543,23 +577,25 @@ export default function RequestsPage() {
             <form onSubmit={handleCreateRequest}>
               <div className="grid gap-4 py-4">
                 <div>
-                  <Label htmlFor="service_type">Service Type</Label>
+                  <Label className="text-sm font-medium text-gray-700">Service Type</Label>
                   {utilitiesLoading ? (
                     <Input 
                       id="service_type" 
                       value="Loading services..." 
                       disabled 
+                      className="mt-1"
                     />
                   ) : utilitiesError || utilityTypes.length === 0 ? (
                     <Input 
                       id="service_type" 
                       value="No available services" 
                       disabled 
+                      className="mt-1"
                     />
                   ) : (
                     <select
                       id="service_type"
-                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs"
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs mt-1"
                       value={formData.service_type || ""}
                       onChange={(e) => setFormData({...formData, service_type: e.target.value})}
                       required
@@ -574,29 +610,40 @@ export default function RequestsPage() {
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="details">Details</Label>
+                  <Label className="text-sm font-medium text-gray-700">Details</Label>
                   <Textarea
                     id="details"
                     value={formData.details || ""}
                     onChange={(e) => setFormData({...formData, details: e.target.value})}
                     placeholder="Enter request details"
                     required
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="comment">Comment (Optional)</Label>
+                  <Label className="text-sm font-medium text-gray-700">Comment (Optional)</Label>
                   <Textarea
                     id="comment"
                     value={formData.comment || ""}
                     onChange={(e) => setFormData({...formData, comment: e.target.value})}
                     placeholder="Add any additional comments"
+                    className="mt-1"
                   />
                 </div>
                 {/* Hidden citizen_id field, populated from user context */}
                 <input type="hidden" value={user?.citizen_id || ""} />
               </div>
               <DialogFooter>
-                <Button type="submit">Submit Request</Button>
+                <Button type="submit" className="w-full" disabled={isCreating}>
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting Request...
+                    </>
+                  ) : (
+                    "Submit Request"
+                  )}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -619,23 +666,24 @@ export default function RequestsPage() {
             <form onSubmit={handleUpdateRequest}>
               <div className="grid gap-4 py-4">
                 <div>
-                  <Label>Citizen ID</Label>
-                  <Input value={selectedRequest?.citizen_id || ""} disabled />
+                  <Label className="text-sm font-medium text-gray-700">Citizen ID</Label>
+                  <Input value={selectedRequest?.citizen_id || ""} disabled className="mt-1" />
                 </div>
                 <div>
-                  <Label>Service Type</Label>
-                  <Input value={selectedRequest?.service_type || ""} disabled />
+                  <Label className="text-sm font-medium text-gray-700">Service Type</Label>
+                  <Input value={selectedRequest?.service_type || ""} disabled className="mt-1" />
                 </div>
                 <div>
-                  <Label>Details</Label>
+                  <Label className="text-sm font-medium text-gray-700">Details</Label>
                   <Textarea
                     value={selectedRequest?.details || ""}
                     disabled
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit_status">Status</Label>
-                  <select id="edit_status" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs" value={formData.status || "PENDING"} onChange={(e) => setFormData({...formData, status: e.target.value})}>
+                  <Label className="text-sm font-medium text-gray-700">Status</Label>
+                  <select id="edit_status" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs mt-1" value={formData.status || "PENDING"} onChange={(e) => setFormData({...formData, status: e.target.value})}>
                     <option value="PENDING">Pending</option>
                     <option value="APPROVED">Approved</option>
                     <option value="RESOLVED">Resolved</option>
@@ -643,17 +691,27 @@ export default function RequestsPage() {
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="edit_comment">Comment</Label>
+                  <Label className="text-sm font-medium text-gray-700">Comment</Label>
                   <Textarea
                     id="edit_comment"
                     value={formData.comment || ""}
                     onChange={(e) => setFormData({...formData, comment: e.target.value})}
                     placeholder="Add a comment for the citizen"
+                    className="mt-1"
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">Update Request</Button>
+                <Button type="submit" className="w-full" disabled={isUpdating}>
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating Request...
+                    </>
+                  ) : (
+                    "Update Request"
+                  )}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
