@@ -30,7 +30,7 @@ export default function Page(){
         {
             name: "Pranay",
             position: "City Advisor",
-            district: "Wakanda",
+            district: "Los Angeles",
             phone: "(123) 456-7103",
             email: "council3@smartcity.gov",
             office: "City Hall, Room 103"
@@ -58,7 +58,7 @@ export default function Page(){
                 <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                         {representatives.map((rep, index) => (
-                            <Card key={index} className="hover:shadow-lg transition-all duration-300 border-t-4 border-t-acc-blue bg-card">
+                            <Card key={index} className="hover:shadow-lg transition-all duration-300 border-t-4 border-t-acc-blue bg-white">
                                 <CardHeader>
                                     <div className="flex items-center">
                                         <User className="h-8 w-8 text-acc-blue mr-3" />
