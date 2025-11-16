@@ -63,22 +63,84 @@ async function viewBill(req, res) {
   }
 }
 
+// Function to get utility types for dropdown
+async function getUtilityTypes(req, res) {
+  try {
+    const utilities = await prisma.utility.findMany({
+      select: {
+        utility_id: true,
+        type: true
+      }
+    });
+    
+    return res.json(utilities);
+  } catch (error) {
+    console.error('Error fetching utility types:', error);
+    return res.status(500).json({ error: 'Failed to fetch utility types' });
+  }
+}
+
+// Function to get addresses for dropdown
+async function getAddressList(req, res) {
+  try {
+    const addresses = await prisma.address.findMany({
+      include: {
+        building: {
+          select: {
+            building_name: true
+          }
+        }
+      }
+    });
+    
+    // Format the addresses for the dropdown
+    const formattedAddresses = addresses.map(addr => ({
+      address_id: addr.address_id,
+      display_name: `${addr.building?.building_name || 'Unknown Building'} - ${addr.flat_no || 'No Flat'}`
+    }));
+    
+    return res.json(formattedAddresses);
+  } catch (error) {
+    console.error('Error fetching addresses:', error);
+    return res.status(500).json({ error: 'Failed to fetch addresses' });
+  }
+}
+
 async function createBill(req, res) {
   try {
     console.log('Creating bill with data:', req.body);
-        
+    
+    // Validate required fields
+    const { address_id, bill_type, amount, due_date, status } = req.body;
+    
+    if (!address_id) {
+      return res.status(400).json({ error: "Address ID is required" });
+    }
+    
+    if (!bill_type) {
+      return res.status(400).json({ error: "Bill type is required" });
+    }
+    
+    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+      return res.status(400).json({ error: "Amount must be a positive number" });
+    }
+    
+    if (!due_date) {
+      return res.status(400).json({ error: "Due date is required" });
+    }
+    
     // Map frontend data to database schema
     // Frontend sends: { address_id, bill_type, amount, due_date, status }
     // Database expects: { bill_id, address_id, utility_id, units, amount, due_date, status }
-    const { bill_type, ...restData } = req.body;
+    const { bill_type: billType, ...restData } = req.body;
     
     let utility_id = null;
     
     // If bill_type is provided, find or create the utility
-    if (bill_type) {
+    if (billType) {
       // Try to find existing utility with this type
       let utility = await prisma.utility.findFirst({
-        where: { type: bill_type }
+        where: { type: billType }
       });
       
       // If not found, create a new utility
@@ -87,7 +149,7 @@ async function createBill(req, res) {
         utility = await prisma.utility.findFirst({
           where: { 
             type: {
-              equals: bill_type,
+              equals: billType,
               mode: 'insensitive'
             }
           }
@@ -97,7 +159,7 @@ async function createBill(req, res) {
         if (!utility) {
           utility = await prisma.utility.create({
             data: {
-              type: bill_type,
+              type: billType,
               charge_per_unit: null,
               dept_id: null
             }
@@ -112,6 +174,8 @@ async function createBill(req, res) {
     const billData = {
       utility_id: utility_id,
       units: null,
+      amount: parseFloat(amount),
+      due_date: new Date(due_date),
       ...restData
     };
     
@@ -146,23 +210,42 @@ async function updateBill(req, res) {
   try {
     console.log('Updating bill ID:', req.params.id, 'with data:', req.body);
     
+    // Validate required fields
+    const { address_id, bill_type, amount, due_date, status } = req.body;
+    
+    if (!address_id) {
+      return res.status(400).json({ error: "Address ID is required" });
+    }
+    
+    if (!bill_type) {
+      return res.status(400).json({ error: "Bill type is required" });
+    }
+    
+    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+      return res.status(400).json({ error: "Amount must be a positive number" });
+    }
+    
+    if (!due_date) {
+      return res.status(400).json({ error: "Due date is required" });
+    }
+    
     // Map frontend data to database schema (same as create)
-    const { bill_type, ...restData } = req.body;
+    const { bill_type: billType, ...restData } = req.body;
     
     let utility_id = null;
     
     // If bill_type is provided, find or create the utility
-    if (bill_type) {
+    if (billType) {
       // Try to find existing utility with this type
       let utility = await prisma.utility.findFirst({
-        where: { type: bill_type }
+        where: { type: billType }
       });
       
       // If not found, create a new utility
       if (!utility) {
         utility = await prisma.utility.create({
           data: {
-            type: bill_type,
+            type: billType,
             charge_per_unit: null,
             dept_id: null
           }
@@ -176,6 +259,8 @@ async function updateBill(req, res) {
     const billData = {
       utility_id: utility_id,
       units: null,
+      amount: parseFloat(amount),
+      due_date: new Date(due_date),
       ...restData
     };
     
@@ -211,70 +296,34 @@ async function updateBill(req, res) {
 
 async function deleteBill(req, res) {
   try {
-    console.log('Deleting bill ID:', req.params.id);
+    const billId = parseInt(req.params.id);
     
-    await prisma.bill.delete({
-      where: { bill_id: parseInt(req.params.id) },
+    // Check if bill exists
+    const existingBill = await prisma.bill.findUnique({
+      where: { bill_id: billId }
     });
     
-    console.log('Bill deleted successfully');
-    return res.status(200).json({ message: 'Bill deleted successfully' });
+    if (!existingBill) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
+    
+    // Delete the bill
+    await prisma.bill.delete({
+      where: { bill_id: billId }
+    });
+    
+    return res.status(200).json({ message: "Bill deleted successfully" });
   } catch (error) {
     console.error('Error deleting bill:', error);
     return res.status(500).json({ error: error.message });
   }
 }
 
-// New function to fetch all utility types
-async function getUtilityTypes(req, res) {
-  try {
-    const utilities = await prisma.utility.findMany({
-      select: {
-        utility_id: true,
-        type: true
-      }
-    });
-    
-    return res.status(200).json(utilities);
-  } catch (error) {
-    console.error('Error fetching utility types:', error);
-    return res.status(500).json({ error: error.message });
-  }
-}
-
-// New function to fetch all addresses
-async function getAddressList(req, res) {
-  try {
-    const addresses = await prisma.address.findMany({
-      select: {
-        address_id: true,
-        flat_no: true,
-        building: {
-          select: {
-            building_name: true
-          }
-        }
-      }
-    });
-    
-    // Format the addresses for the frontend
-    const formattedAddresses = addresses.map(address => ({
-      address_id: address.address_id,
-      display_name: `${address.building?.building_name || 'Building'} - ${address.flat_no || 'No Flat'} (ID: ${address.address_id})`
-    }));
-    
-    return res.status(200).json(formattedAddresses);
-  } catch (error) {
-    console.error('Error fetching addresses:', error);
-    return res.status(500).json({ error: error.message });
-  }
-}
-
 module.exports = {
   viewBill,
+  getUtilityTypes,
+  getAddressList,
   createBill,
   updateBill,
-  deleteBill,
-  getUtilityTypes,
-  getAddressList
+  deleteBill
 };

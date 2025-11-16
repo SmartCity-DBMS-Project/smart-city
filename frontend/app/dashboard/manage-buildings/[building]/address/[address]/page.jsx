@@ -37,7 +37,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { ArrowLeft, Plus, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Loader2 } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SkeletonLoader from "@/components/SkeletonLoader";
 
@@ -65,6 +65,10 @@ export default function AddressDetailsPage({ params }) {
     citizen_id: "",
     role: "",
   });
+
+  // State for form submission loading
+  const [isAdding, setIsAdding] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Redirect unauthenticated users
   useEffect(() => {
@@ -149,10 +153,36 @@ export default function AddressDetailsPage({ params }) {
   };
 
   // ============================
+  // Validate citizen form data
+  // ============================
+  const validateCitizenForm = (data) => {
+    const errors = [];
+    
+    if (!data.citizen_id) {
+      errors.push("Citizen is required");
+    }
+    
+    if (!data.role) {
+      errors.push("Role is required");
+    }
+    
+    return errors;
+  };
+
+  // ============================
   // Add Citizen
   // ============================
   const handleAddCitizen = async (e) => {
     e.preventDefault();
+    
+    // Validate form data
+    const errors = validateCitizenForm(citizenForm);
+    if (errors.length > 0) {
+      alert("Validation errors:\n" + errors.join("\n"));
+      return;
+    }
+    
+    setIsAdding(true);
     try {
       const res = await fetch(
         `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}/citizens`,
@@ -172,6 +202,8 @@ export default function AddressDetailsPage({ params }) {
       resetForm();
     } catch (err) {
       alert("Error: " + err.message);
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -180,6 +212,15 @@ export default function AddressDetailsPage({ params }) {
   // ============================
   const handleUpdateCitizen = async (e) => {
     e.preventDefault();
+    
+    // Validate form data
+    const errors = validateCitizenForm(citizenForm);
+    if (errors.length > 0) {
+      alert("Validation errors:\n" + errors.join("\n"));
+      return;
+    }
+    
+    setIsUpdating(true);
     try {
       const res = await fetch(
         `http://localhost:8000/api/buildings/${building_id}/addresses/${address_id}/citizens/${selectedCitizen.citizen_id}`,
@@ -198,6 +239,8 @@ export default function AddressDetailsPage({ params }) {
       resetForm();
     } catch (err) {
       alert("Error: " + err.message);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -360,14 +403,14 @@ export default function AddressDetailsPage({ params }) {
                   {/* 👇 Updated form with citizen dropdown */}
                   <form onSubmit={handleAddCitizen} className="space-y-4">
                     <div>
-                      <Label>Select Citizen</Label>
+                      <Label className="text-sm font-medium text-gray-700">Select Citizen</Label>
                       <Select
-                        value={citizenForm.citizen_id}
+                        value={citizenForm.citizen_id || ""}
                         onValueChange={(val) =>
                           setCitizenForm({ ...citizenForm, citizen_id: val })
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Choose a citizen" />
                         </SelectTrigger>
                         <SelectContent>
@@ -381,14 +424,14 @@ export default function AddressDetailsPage({ params }) {
                     </div>
 
                     <div>
-                      <Label>Role</Label>
+                      <Label className="text-sm font-medium text-gray-700">Role</Label>
                       <Select
-                        value={citizenForm.role}
+                        value={citizenForm.role || ""}
                         onValueChange={(val) =>
                           setCitizenForm({ ...citizenForm, role: val })
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
                         <SelectContent>
@@ -400,7 +443,16 @@ export default function AddressDetailsPage({ params }) {
                     </div>
 
                     <DialogFooter>
-                      <Button type="submit">Add Citizen</Button>
+                      <Button type="submit" className="w-full" disabled={isAdding}>
+                        {isAdding ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Adding Citizen...
+                          </>
+                        ) : (
+                          "Add Citizen"
+                        )}
+                      </Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
@@ -462,6 +514,70 @@ export default function AddressDetailsPage({ params }) {
           </Card>
         </div>
       </section>
+
+      {/* Edit Citizen Dialog */}
+      {user?.role === "ADMIN" && (
+        <Dialog
+          open={isEditCitizenDialogOpen}
+          onOpenChange={(open) => {
+            setIsEditCitizenDialogOpen(open);
+            if (!open) {
+              resetForm();
+              setSelectedCitizen(null);
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Edit Citizen Role</DialogTitle>
+              <DialogDescription>Update the role of this citizen</DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleUpdateCitizen} className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Citizen</Label>
+                <Input 
+                  value={`${selectedCitizen?.citizen?.full_name || selectedCitizen?.citizen_id} (ID: ${selectedCitizen?.citizen_id})`} 
+                  disabled 
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Role</Label>
+                <Select
+                  value={citizenForm.role || ""}
+                  onValueChange={(val) =>
+                    setCitizenForm({ ...citizenForm, role: val })
+                  }
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owner">Owner</SelectItem>
+                    <SelectItem value="tenant">Tenant</SelectItem>
+                    <SelectItem value="resident">Resident</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <DialogFooter>
+                <Button type="submit" className="w-full" disabled={isUpdating}>
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating Role...
+                    </>
+                  ) : (
+                    "Update Role"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </main>
   );
 }

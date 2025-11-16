@@ -28,7 +28,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Search, Edit, Trash2, ArrowLeft } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ArrowLeft, Loader2 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -57,6 +57,10 @@ export default function ManageCitizensPage() {
     dob: "",
     email: "",
   });
+
+  // New state for form submission loading
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -110,15 +114,63 @@ export default function ManageCitizensPage() {
       email: "",
     });
 
+  // Validate citizen form data
+  const validateCitizenForm = (data) => {
+    const errors = [];
+    
+    if (!data.full_name || data.full_name.trim() === "") {
+      errors.push("Full name is required");
+    }
+    
+    if (!data.email || data.email.trim() === "") {
+      errors.push("Email is required");
+    } else {
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        errors.push("Please enter a valid email address");
+      }
+    }
+    
+    if (!data.gender) {
+      errors.push("Gender is required");
+    }
+    
+    if (!data.dob) {
+      errors.push("Date of birth is required");
+    }
+    
+    if (data.phone && !/^\d{10,15}$/.test(data.phone)) {
+      errors.push("Phone number must be between 10 and 15 digits");
+    }
+    
+    return errors;
+  };
+
   // Create new citizen
   const handleCreateCitizen = async (e) => {
     e.preventDefault();
+    
+    // Validate form data
+    const errors = validateCitizenForm(formData);
+    if (errors.length > 0) {
+      alert("Validation errors:\n" + errors.join("\n"));
+      return;
+    }
+    
+    setIsCreating(true);
     try {
       const response = await fetch("http://localhost:8000/api/citizens", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          full_name: formData.full_name,
+          phone: formData.phone,
+          gender: formData.gender,
+          dob: formData.dob,
+          email: formData.email,
+        }),
       });
 
       if (!response.ok) {
@@ -131,12 +183,23 @@ export default function ManageCitizensPage() {
       resetForm();
     } catch (err) {
       alert("Error: " + err.message);
+    } finally {
+      setIsCreating(false);
     }
   };
 
   // Update citizen
   const handleUpdateCitizen = async (e) => {
     e.preventDefault();
+    
+    // Validate form data
+    const errors = validateCitizenForm(formData);
+    if (errors.length > 0) {
+      alert("Validation errors:\n" + errors.join("\n"));
+      return;
+    }
+    
+    setIsUpdating(true);
     try {
       const response = await fetch(
         `http://localhost:8000/api/citizens/${selectedCitizen.citizen_id}`,
@@ -144,7 +207,13 @@ export default function ManageCitizensPage() {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            full_name: formData.full_name,
+            phone: formData.phone,
+            gender: formData.gender,
+            dob: formData.dob,
+            email: formData.email,
+          }),
         }
       );
 
@@ -158,6 +227,8 @@ export default function ManageCitizensPage() {
       resetForm();
     } catch (err) {
       alert("Error: " + err.message);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -276,24 +347,48 @@ export default function ManageCitizensPage() {
                   </DialogHeader>
 
                   <form onSubmit={handleCreateCitizen} className="space-y-4">
-                    {["full_name", "phone", "email"].map((field) => (
-                      <div key={field}>
-                        <Label className="capitalize">{field.replace("_", " ")}</Label>
-                        <Input
-                          value={formData[field]}
-                          onChange={(e) =>
-                            setFormData({ ...formData, [field]: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-                    ))}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Full Name</Label>
+                      <Input
+                        value={formData.full_name || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, full_name: e.target.value })
+                        }
+                        required
+                        className="mt-1"
+                      />
+                    </div>
 
                     <div>
-                      <Label>Gender</Label>
+                      <Label className="text-sm font-medium text-gray-700">Email</Label>
+                      <Input
+                        type="email"
+                        value={formData.email || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                        required
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Phone</Label>
+                      <Input
+                        type="tel"
+                        value={formData.phone || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Gender</Label>
                       <select
-                        className="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm"
-                        value={formData.gender}
+                        className="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
+                        value={formData.gender || ""}
                         onChange={(e) =>
                           setFormData({ ...formData, gender: e.target.value })
                         }
@@ -307,20 +402,28 @@ export default function ManageCitizensPage() {
                     </div>
 
                     <div>
-                      <Label>Date of Birth</Label>
+                      <Label className="text-sm font-medium text-gray-700">Date of Birth</Label>
                       <Input
                         type="date"
-                        value={formData.dob}
+                        value={formData.dob || ""}
                         onChange={(e) =>
                           setFormData({ ...formData, dob: e.target.value })
                         }
                         required
+                        className="mt-1"
                       />
                     </div>
 
                     <DialogFooter>
-                      <Button type="submit" className="w-full">
-                        Add Citizen
+                      <Button type="submit" className="w-full" disabled={isCreating}>
+                        {isCreating ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Adding Citizen...
+                          </>
+                        ) : (
+                          "Add Citizen"
+                        )}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -450,24 +553,48 @@ export default function ManageCitizensPage() {
           </DialogHeader>
 
           <form onSubmit={handleUpdateCitizen} className="space-y-4">
-            {["full_name", "phone", "email"].map((field) => (
-              <div key={field}>
-                <Label className="capitalize">{field.replace("_", " ")}</Label>
-                <Input
-                  value={formData[field]}
-                  onChange={(e) =>
-                    setFormData({ ...formData, [field]: e.target.value })
-                  }
-                  required
-                />
-              </div>
-            ))}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Full Name</Label>
+              <Input
+                value={formData.full_name || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, full_name: e.target.value })
+                }
+                required
+                className="mt-1"
+              />
+            </div>
 
             <div>
-              <Label>Gender</Label>
+              <Label className="text-sm font-medium text-gray-700">Email</Label>
+              <Input
+                type="email"
+                value={formData.email || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                required
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Phone</Label>
+              <Input
+                type="tel"
+                value={formData.phone || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Gender</Label>
               <select
-                className="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm"
-                value={formData.gender}
+                className="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
+                value={formData.gender || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, gender: e.target.value })
                 }
@@ -481,20 +608,28 @@ export default function ManageCitizensPage() {
             </div>
 
             <div>
-              <Label>Date of Birth</Label>
+              <Label className="text-sm font-medium text-gray-700">Date of Birth</Label>
               <Input
                 type="date"
-                value={formData.dob}
+                value={formData.dob || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, dob: e.target.value })
                 }
                 required
+                className="mt-1"
               />
             </div>
 
             <DialogFooter>
-              <Button type="submit" className="w-full">
-                Update Citizen
+              <Button type="submit" className="w-full" disabled={isUpdating}>
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating Citizen...
+                  </>
+                ) : (
+                  "Update Citizen"
+                )}
               </Button>
             </DialogFooter>
           </form>

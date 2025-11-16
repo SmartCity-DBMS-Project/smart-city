@@ -57,12 +57,25 @@ const createRequest = async (req, res) => {
   try {
     const { citizen_id, service_type, details, status, comment } = req.body;
     
+    // Validate required fields
+    if (!citizen_id) {
+      return res.status(400).json({ error: 'Citizen ID is required' });
+    }
+    
+    if (!service_type || service_type.trim() === '') {
+      return res.status(400).json({ error: 'Service type is required' });
+    }
+    
+    if (!details || details.trim() === '') {
+      return res.status(400).json({ error: 'Details are required' });
+    }
+    
     const request = await prisma.request.create({
       data: {
         citizen_id: parseInt(citizen_id),
         service_type,
         details,
-        status,
+        status: status || 'PENDING',
         comment
       }
     });
@@ -79,6 +92,11 @@ const updateRequest = async (req, res) => {
   try {
     const { id } = req.params;
     const { citizen_id, service_type, details, status, comment } = req.body;
+    
+    // Validate that at least one field is provided for update
+    if (!citizen_id && !service_type && !details && !status && !comment) {
+      return res.status(400).json({ error: 'At least one field is required for update' });
+    }
     
     // Only update fields that are provided
     const updateData = {};
@@ -108,6 +126,15 @@ const updateRequest = async (req, res) => {
 const deleteRequest = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Check if request exists
+    const existingRequest = await prisma.request.findUnique({
+      where: { request_id: parseInt(id) }
+    });
+    
+    if (!existingRequest) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
     
     await prisma.request.delete({
       where: { request_id: parseInt(id) }

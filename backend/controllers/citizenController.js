@@ -39,8 +39,31 @@ async function handlePostCitizen(req, res) {
     const { full_name, phone, gender, dob, email } = req.body;
 
     // 1️⃣ BASIC VALIDATION
+    if (!full_name || full_name.trim() === "") {
+      return res.status(400).json({ error: "Full name is required" });
+    }
+
     if (!email || email.trim() === "") {
       return res.status(400).json({ error: "Email is required" });
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Please provide a valid email address" });
+    }
+
+    if (!gender) {
+      return res.status(400).json({ error: "Gender is required" });
+    }
+
+    if (!dob) {
+      return res.status(400).json({ error: "Date of birth is required" });
+    }
+
+    // Phone validation (if provided)
+    if (phone && !/^\d{10,15}$/.test(phone)) {
+      return res.status(400).json({ error: "Phone number must be between 10 and 15 digits" });
     }
 
     // 2️⃣ CHECK IF EMAIL ALREADY EXISTS BEFORE INSIDE TRANSACTION
@@ -94,6 +117,34 @@ async function handlePatchCitizen(req, res) {
   try {
     const { full_name, phone, gender, dob, email } = req.body;
     const citizen_id = parseInt(req.params.citizen_id);
+
+    // 1️⃣ BASIC VALIDATION
+    if (!full_name || full_name.trim() === "") {
+      return res.status(400).json({ error: "Full name is required" });
+    }
+
+    if (!email || email.trim() === "") {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Please provide a valid email address" });
+    }
+
+    if (!gender) {
+      return res.status(400).json({ error: "Gender is required" });
+    }
+
+    if (!dob) {
+      return res.status(400).json({ error: "Date of birth is required" });
+    }
+
+    // Phone validation (if provided)
+    if (phone && !/^\d{10,15}$/.test(phone)) {
+      return res.status(400).json({ error: "Phone number must be between 10 and 15 digits" });
+    }
 
     const updated = await prisma.$transaction(async (txn) => {
 

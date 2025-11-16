@@ -8,8 +8,8 @@ const {
     handleGetAddressDetails,
     handleGetCitizensByAddress,
     handlePostCitizensByAddress,
-    handlePatchCitizensByAddress,
-    handleDeleteCitizensByAddress,
+    handleUpdateCitizenByAddress,
+    handleDeleteCitizenByAddress,
 } = require('../controllers/addressController');
 
 const router = express.Router({ mergeParams: true });
@@ -29,8 +29,8 @@ router.delete("/:address_id", handleDeleteAddress);
 // Citizen routes under each address
 router.get("/:address_id/citizens", handleGetCitizensByAddress);
 router.post("/:address_id/citizens", handlePostCitizensByAddress);
-router.patch("/:address_id/citizens/:citizen_id", handlePatchCitizensByAddress);
-router.delete("/:address_id/citizens/:citizen_id", handleDeleteCitizensByAddress);
+router.patch("/:address_id/citizens/:citizen_id", handleUpdateCitizenByAddress);
+router.delete("/:address_id/citizens/:citizen_id", handleDeleteCitizenByAddress);
 
 
 module.exports = router;

@@ -60,36 +60,98 @@ async function handlePostBuilding(req, res) {
   try {
     console.log('Creating Building with data:', req.body);
 
-    const typeId = req.body.type_id;
+    const { building_name, street, zone, pincode, building_type, category, type_id } = req.body;
 
-    if (!typeId) {
-      return res.status(422).json({ message: "Type_id doesn't exist" });
+    // Validate required fields
+    if (!building_name || building_name.trim() === "") {
+      return res.status(400).json({ error: "Building name is required" });
     }
+
+    if (!street || street.trim() === "") {
+      return res.status(400).json({ error: "Street is required" });
+    }
+
+    if (!zone || zone.trim() === "") {
+      return res.status(400).json({ error: "Zone is required" });
+    }
+
+    if (!pincode || pincode.trim() === "") {
+      return res.status(400).json({ error: "Pincode is required" });
+    }
+
+    // Validate pincode format (6 digits)
+    if (!/^\d{6}$/.test(pincode)) {
+      return res.status(400).json({ error: "Pincode must be a 6-digit number" });
+    }
+
+    // Check if either type_id or custom type info is provided
+    const isCustomType = building_type && category;
+    if (!type_id && !isCustomType) {
+      return res.status(400).json({ error: "Either type_id or custom building type information is required" });
+    }
+
+    // If custom type, validate required fields
+    if (isCustomType) {
+      if (!building_type || building_type.trim() === "") {
+        return res.status(400).json({ error: "Building type name is required for custom types" });
+      }
+
+      if (!category || category.trim() === "") {
+        return res.status(400).json({ error: "Category is required for custom types" });
+      }
+    }
+
+    let createdTypeId = type_id;
 
     // Run inside a transaction
     const result = await prisma.$transaction(async (tx) => {
-      
-      // 1. Check type exists
-      const type = await tx.building_type.findUnique({
-        where: { type_id: typeId },
-      });
+      // If custom type, create the building type first
+      if (isCustomType) {
+        // Check if type already exists (case insensitive)
+        let existingType = await tx.building_type.findFirst({
+          where: {
+            type_name: {
+              equals: building_type,
+              mode: 'insensitive'
+            }
+          }
+        });
 
-      if (!type) {
-        throw new Error("Invalid type_id");
+        if (!existingType) {
+          // Create new building type
+          const newType = await tx.building_type.create({
+            data: {
+              type_name: building_type,
+              category: category
+            }
+          });
+          createdTypeId = newType.type_id;
+        } else {
+          createdTypeId = existingType.type_id;
+        }
+      } else {
+        // Validate that type_id exists
+        const typeExists = await tx.building_type.findUnique({
+          where: { type_id: parseInt(type_id) }
+        });
+
+        if (!typeExists) {
+          throw new Error("Invalid type_id: Building type does not exist");
+        }
       }
 
-      // 2. Create building
+      // Create building
       const building = await tx.building.create({
         data: {
-          building_name: req.body.building_name,
-          street: req.body.street,
-          zone: req.body.zone,
-          pincode: req.body.pincode,
-          type_id: typeId,
+          building_name: building_name,
+          street: street,
+          zone: zone,
+          pincode: pincode,
+          type_id: parseInt(createdTypeId),
         },
       });
 
-      // 3. Create default address
+      // Create default address
       const address = await tx.address.create({
         data: {
           building_id: building.building_id,
@@ -138,8 +200,19 @@ async function handleDeleteBuilding(req, res){
   try {
     console.log('Deleting building ID:', req.params.building_id);
     
+    const buildingId = parseInt(req.params.building_id);
+    
+    // Check if building exists
+    const existingBuilding = await prisma.building.findUnique({
+      where: { building_id: buildingId },
+    });
+    
+    if (!existingBuilding) {
+      return res.status(404).json({ error: 'Building not found' });
+    }
+    
     await prisma.building.delete({
-      where: { building_id: parseInt(req.params.building_id) },
+      where: { building_id: buildingId },
     });
     
     console.log('Building deleted successfully');
@@ -193,6 +266,32 @@ async function handleUpdateBuilding(req, res) {
     const building_id = parseInt(req.params.building_id);
     const { building_name, street, zone, pincode, type_id } = req.body;
 
+    // Validate required fields
+    if (!building_name || building_name.trim() === "") {
+      return res.status(400).json({ error: "Building name is required" });
+    }
+
+    if (!street || street.trim() === "") {
+      return res.status(400).json({ error: "Street is required" });
+    }
+
+    if (!zone || zone.trim() === "") {
+      return res.status(400).json({ error: "Zone is required" });
+    }
+
+    if (!pincode || pincode.trim() === "") {
+      return res.status(400).json({ error: "Pincode is required" });
+    }
+
+    // Validate pincode format (6 digits)
+    if (!/^\d{6}$/.test(pincode)) {
+      return res.status(400).json({ error: "Pincode must be a 6-digit number" });
+    }
+
+    if (!type_id) {
+      return res.status(400).json({ error: "Type ID is required" });
+    }
+
     // Check if building exists
     const existingBuilding = await prisma.building.findUnique({
       where: { building_id: building_id },
@@ -202,26 +301,23 @@ async function handleUpdateBuilding(req, res) {
       return res.status(404).json({ error: "Building not found" });
     }
 
-    // If type_id is provided, verify it exists
-    if (type_id) {
-      const type = await prisma.building_type.findUnique({
-        where: { type_id: type_id },
-      });
+    // Check if type_id exists
+    const typeExists = await prisma.building_type.findUnique({
+      where: { type_id: parseInt(type_id) }
+    });
 
-      if (!type) {
-        return res.status(400).json({ error: "Invalid type_id" });
-      }
+    if (!typeExists) {
+      return res.status(400).json({ error: "Invalid type_id: Building type does not exist" });
     }
 
-    // Update building
     const updatedBuilding = await prisma.building.update({
       where: { building_id: building_id },
       data: {
-        building_name: building_name || existingBuilding.building_name,
-        street: street || existingBuilding.street,
-        zone: zone || existingBuilding.zone,
-        pincode: pincode || existingBuilding.pincode,
-        type_id: type_id || existingBuilding.type_id,
+        building_name,
+        street,
+        zone,
+        pincode,
+        type_id: parseInt(type_id),
       },
     });
 
@@ -229,16 +325,19 @@ async function handleUpdateBuilding(req, res) {
 
   } catch (error) {
     console.error('Error updating building:', error);
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Building not found' });
+    }
     return res.status(500).json({ error: error.message });
   }
 }
 
 module.exports = {
     handleGetBuildings,
-    handleGetBuildingTypes,
     handleGetBuildingsByType,
     handlePostBuilding,
+    handleGetBuildingTypes,
     handleDeleteBuilding,
     handleGetBuildingById,
-    handleUpdateBuilding,  // Added the new update function
+    handleUpdateBuilding,
 }
