@@ -250,7 +250,7 @@ export default function RequestsPage() {
           </div>
         </section>
         
-        <section className="w-full py-12 bg-card">
+        <section className="w-full py-12 bg-muted-background">
           <div className="container px-4 md:px-6 mx-auto max-w-6xl">
             <Card>
               <CardHeader>
@@ -284,11 +284,11 @@ export default function RequestsPage() {
     <main className="flex flex-col items-center min-h-screen w-full">
       <section className="w-full py-12 md:py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <div className="flex items-center gap-4 mb-8">
-            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2 mb-2">
               <ArrowLeft className="h-4 w-4" />
               Back
             </Button>
+          <div className="flex items-center gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-primary mb-2">
                 {user?.role === "CITIZEN" ? "My Requests" : "Requests Management"}
@@ -298,6 +298,7 @@ export default function RequestsPage() {
                   ? "View and submit service requests" 
                   : "View and manage service requests"}
               </p>
+              <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full"></div>
             </div>
             {user?.role === "CITIZEN" && (
               <Button 
@@ -378,7 +379,7 @@ export default function RequestsPage() {
         </div>
       </section>
 
-      <section className="w-full py-12 bg-card">
+      <section className="w-full py-12 bg-muted-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <Card>
             <CardHeader>

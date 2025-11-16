@@ -67,6 +67,7 @@ export default function DashboardPage() {
               <h1 className="text-4xl md:text-5xl font-bold text-primary leading-tight">
                 Welcome, <span>{displayName}!</span>
               </h1>
+              <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full"></div>
 
               <div className="mt-3 space-y-1">
                 <p className="text-sm md:text-base text-muted-foreground flex items-center gap-2">
@@ -102,7 +103,7 @@ export default function DashboardPage() {
       {/* ============================================================ */}
       {/* SECTION 2 — YOUR INFO + NOTIFICATIONS + SETTINGS (SAME ROW)   */}
       {/* ============================================================ */}
-      <section className="w-full py-12 bg-card">
+      <section className="w-full py-12 bg-muted-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
 
           {/* SINGLE CARD with two sides: LEFT info / RIGHT tiles */}

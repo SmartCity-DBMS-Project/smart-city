@@ -38,9 +38,23 @@ async function handlePostCitizen(req, res) {
   try {
     const { full_name, phone, gender, dob, email } = req.body;
 
-    // Transaction to create email when citizen is created
+    // 1️⃣ BASIC VALIDATION
+    if (!email || email.trim() === "") {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    // 2️⃣ CHECK IF EMAIL ALREADY EXISTS BEFORE INSIDE TRANSACTION
+    const existing = await prisma.login.findUnique({
+      where: { email },
+    });
+
+    if (existing) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+
+    // 3️⃣ SAFE TRANSACTION BLOCK
     const result = await prisma.$transaction(async (txn) => {
-      const citizen = await prisma.citizen.create({
+      const citizen = await txn.citizen.create({
         data: {
           full_name,
           phone,
@@ -49,27 +63,32 @@ async function handlePostCitizen(req, res) {
         },
       });
 
-      const login = await prisma.login.create({
+      const login = await txn.login.create({
         data: {
           citizen_id: citizen.citizen_id,
           email: email,
           password: null,
-          role: 'CITIZEN',
+          role: "CITIZEN",
         },
       });
 
-      return {
-        citizen,
-        login,
-      };
+      return { citizen, login };
     });
 
     return res.status(200).json(result);
+
   } catch (error) {
-    console.error('Failed to create citizen:', error);
+    console.error("Failed to create citizen:", error);
+
+    // Handle Prisma unique constraint error nicely
+    if (error.code === "P2002") {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+
     return res.status(500).json({ error: error.message });
   }
 }
+
 
 async function handlePatchCitizen(req, res) {
   try {

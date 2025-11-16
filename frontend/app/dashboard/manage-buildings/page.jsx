@@ -28,7 +28,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Search, MapPin } from "lucide-react";
+import { Plus, Search, ArrowLeft } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
@@ -194,7 +194,7 @@ export default function ManageBuildingsPage() {
         </div>
       </section>
   
-      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+      <section className="w-full py-12 bg-muted-background flex-1 flex items-center justify-center">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <LoadingSpinner message="Loading buildings..." />
         </div>
@@ -222,7 +222,7 @@ export default function ManageBuildingsPage() {
         </div>
       </section>
   
-      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+      <section className="w-full py-12 bg-muted-background flex-1 flex items-center justify-center">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <LoadingSpinner message="Loading buildings..." />
         </div>
@@ -234,6 +234,14 @@ export default function ManageBuildingsPage() {
     <main className="flex flex-col items-center min-h-screen w-full">
       <section className="w-full py-12 md:py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="flex items-center gap-4 mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold text-primary mb-2">
@@ -242,6 +250,7 @@ export default function ManageBuildingsPage() {
               <p className="text-muted-foreground">
                 Manage and organize building data
               </p>
+              <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full"></div>
             </div>
 
             {/* Add Building Button */}
@@ -394,7 +403,7 @@ export default function ManageBuildingsPage() {
           </div>
 
           {/* 🏢 Table of Buildings */}
-          <Card>
+          <Card className="bg-white">
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>

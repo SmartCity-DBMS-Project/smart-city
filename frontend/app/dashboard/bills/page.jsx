@@ -232,7 +232,7 @@ export default function BillsPage() {
         </div>
       </section>
   
-      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+      <section className="w-full py-12 bg-muted-background flex-1 flex items-center justify-center">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <LoadingSpinner message="Loading bills..." />
         </div>
@@ -244,11 +244,11 @@ export default function BillsPage() {
     <main className="flex flex-col items-center min-h-screen w-full">
       <section className="w-full py-12 md:py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+          <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
           <div className="flex items-center gap-4 mb-8">
-            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
             <div>
               <h1 className="text-3xl font-bold text-primary mb-2">Bills Management</h1>
               <p className="text-muted-foreground">View and manage your utility bills</p>
@@ -260,7 +260,7 @@ export default function BillsPage() {
         </div>
       </section>
   
-      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+      <section className="w-full py-12 bg-muted-background flex-1 flex items-center justify-center">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <LoadingSpinner message="Loading bills..." />
         </div>
@@ -293,6 +293,7 @@ export default function BillsPage() {
   <div className="flex-1 text-left">
     <h1 className="text-3xl font-bold text-primary mb-2">Bills Management</h1>
     <p className="text-muted-foreground">View and manage your utility bills</p>
+    <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full"></div>
   </div>
 
   {/* CREATE BILL — right side */}
@@ -447,7 +448,7 @@ export default function BillsPage() {
         </div>
       </section>
 
-      <section className="w-full py-12 bg-card">
+      <section className="w-full py-12 bg-muted-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <Card className="bg-background">
             <CardHeader>

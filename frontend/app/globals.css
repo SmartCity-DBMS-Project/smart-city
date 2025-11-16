@@ -9,6 +9,7 @@
   --acc-blue: #1a73e8;
   --acc-yellow: #fcb61a;
   --acc-green: #34a853;
+  --muted-background: #f5f7fa;
   --background: #f8f9fa;  /* Light gray background */
   --foreground: #091f2f;
   --radius: 0.75rem;
@@ -49,6 +50,7 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-muted-background: var(--muted-background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);        /* card / surface color */
   --color-primary: var(--primary);      /* navbar background */

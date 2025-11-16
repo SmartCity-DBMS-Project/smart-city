@@ -28,7 +28,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Search, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ArrowLeft } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -218,7 +218,7 @@ export default function ManageCitizensPage() {
                       </div>
                   </section>
               
-                  <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+                  <section className="w-full py-12 bg-muted-background flex-1 flex items-center justify-center">
                       <div className="container px-4 md:px-6 mx-auto max-w-6xl">
                           <LoadingSpinner message="Loading your dashboard..." />
                       </div>
@@ -230,17 +230,26 @@ export default function ManageCitizensPage() {
   if (!user) return null;
 
   return (
-    <main className="flex flex-col items-center min-h-screen w-full bg-[#f5f7fa]">
+    <main className="flex flex-col items-center min-h-screen w-full bg-muted-background">
       <section className="w-full py-12 md:py-16">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
 
           {/* Header */}
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="flex items-center gap-4 mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
           <div className="flex justify-between items-center mb-10">
             <div>
               <h1 className="text-4xl font-bold text-primary">Citizen Management</h1>
               <p className="text-muted-foreground mt-1">
                 Manage and organize citizen information
               </p>
+              <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full"></div>
             </div>
 
             {user?.role === "ADMIN" && (
@@ -368,7 +377,7 @@ export default function ManageCitizensPage() {
                     {filteredCitizens.map((c) => (
                       <TableRow
                         key={c.citizen_id}
-                        className="odd:bg-gray-50 even:bg-white transition"
+                        className="odd:bg-white even:bg-white transition"
                       >
                         <TableCell>{c.citizen_id}</TableCell>
                         <TableCell>{c.full_name}</TableCell>

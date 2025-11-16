@@ -95,7 +95,7 @@ export default function ProfilePage() {
             <SkeletonLoader />
           </div>
         </section>
-        <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+        <section className="w-full py-12 bg-muted-background flex-1 flex items-center justify-center">
           <LoadingSpinner message="Loading profile..." />
         </section>
       </main>
@@ -108,27 +108,27 @@ export default function ProfilePage() {
 
       {/* TOP SECTION — zebra bg */}
       <section className="w-full py-12 md:py-16 bg-background">
-        <div className="container px-4 mx-auto max-w-6xl flex items-center gap-4 mb-8">
+        <div className="container px-4 mx-auto max-w-6xl flex-col items-center gap-10 mb-8">
           <Button
             variant="outline"
             onClick={() => router.back()}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 mb-4"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-
           <div>
             <h1 className="text-3xl font-bold text-primary mb-2">Profile Settings</h1>
             <p className="text-muted-foreground">
               Manage your profile information and account settings
             </p>
+            <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full"></div>
           </div>
         </div>
       </section>
 
       {/* MAIN SECTION — zebra bg */}
-      <section className="w-full py-12 bg-card">
+      <section className="w-full py-12 bg-muted-background">
         <div className="container px-4 mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* ===================================================== */}

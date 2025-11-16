@@ -102,7 +102,17 @@ export default function NotificationsPage() {
     return (
       <section className="w-full py-12 bg-background">
         <div className="container max-w-4xl px-4 mx-auto">
-          <h1 className="text-4xl font-bold text-primary mb-8">Notifications</h1>
+          {/* PAGE TITLE */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-primary mb-2">
+              Notifications
+            </h1>
+            <p className="text-muted-foreground">
+              View and Delete notifications
+            </p>
+          </div>
+        </div>
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
               <Skeleton key={i} className="h-24 w-full rounded-xl" />
@@ -120,7 +130,17 @@ export default function NotificationsPage() {
     return (
       <section className="w-full py-12 bg-background">
         <div className="container max-w-4xl px-4 mx-auto">
-          <h1 className="text-4xl font-bold text-primary mb-6">Notifications</h1>
+          {/* PAGE TITLE */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-primary mb-2">
+              Notifications
+            </h1>
+            <p className="text-muted-foreground">
+              View and Delete notifications
+            </p>
+          </div>
+        </div>
           <Card className="bg-background">
             <CardContent className="p-6">
               <p className="text-red-500">{error}</p>
@@ -145,7 +165,16 @@ export default function NotificationsPage() {
       <div className="container max-w-4xl px-4 mx-auto">
 
         {/* PAGE TITLE */}
-        <h1 className="text-4xl font-bold text-primary mb-10">Notifications</h1>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-primary mb-2">
+              Notifications
+            </h1>
+            <p className="text-muted-foreground">
+              View and Delete notifications
+            </p>
+          </div>
+        </div>
 
         {/* EMPTY STATE */}
         {notifications.length === 0 ? (

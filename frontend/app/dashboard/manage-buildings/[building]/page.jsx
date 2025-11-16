@@ -252,11 +252,11 @@ export default function BuildingDetailsPage({ params }) {
     <main className="flex flex-col items-center min-h-screen w-full">
       <section className="w-full py-12 md:py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <div className="flex items-center gap-4 mb-8">
-            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2 mb-2">
               <ArrowLeft className="h-4 w-4" />
               Back
             </Button>
+          <div className="flex items-center gap-4 mb-8">
             <div>
               <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
               <div className="h-4 w-80 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
@@ -265,7 +265,7 @@ export default function BuildingDetailsPage({ params }) {
         </div>
       </section>
   
-      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+      <section className="w-full py-12 bg-muted-background flex-1 flex items-center justify-center">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <LoadingSpinner message="Loading building details..." />
         </div>
@@ -277,11 +277,11 @@ export default function BuildingDetailsPage({ params }) {
     <main className="flex flex-col items-center min-h-screen w-full">
       <section className="w-full py-12 md:py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <div className="flex items-center gap-4 mb-8">
-            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2 mb-2">
               <ArrowLeft className="h-4 w-4" />
               Back
             </Button>
+          <div className="flex items-center gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-primary mb-2">
                 Building Details
@@ -294,7 +294,7 @@ export default function BuildingDetailsPage({ params }) {
         </div>
       </section>
   
-      <section className="w-full py-12 bg-card flex-1 flex items-center justify-center">
+      <section className="w-full py-12 bg-muted-background flex-1 flex items-center justify-center">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <LoadingSpinner message="Loading building information..." />
         </div>
@@ -313,38 +313,44 @@ export default function BuildingDetailsPage({ params }) {
     <main className="flex flex-col items-center min-h-screen w-full">
       <section className="w-full py-12 md:py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <div className="flex items-center gap-4 mb-8">
-            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-primary mb-2">
-                {building?.building_name || "Building Details"}
-              </h1>
-              <p className="text-muted-foreground">
-                Manage building addresses and residents
-              </p>
-            </div>
-            {user?.role === "ADMIN" && (
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsEditBuildingDialogOpen(true)}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Building
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={handleDeleteBuilding}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Building
-                </Button>
-              </div>
-            )}
-          </div>
+          <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2 mb-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div className="flex items-center justify-between mb-8">
+  {/* LEFT — TITLE */}
+  <div>
+    <h1 className="text-3xl font-bold text-primary mb-2">
+      {building?.building_name || "Building Details"}
+    </h1>
+    <p className="text-muted-foreground">
+      Manage building addresses and residents
+    </p>
+    <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full"></div>
+  </div>
+
+  {/* RIGHT — BUTTONS */}
+  {user?.role === "ADMIN" && (
+    <div className="flex gap-2">
+      <Button 
+        variant="outline" 
+        onClick={() => setIsEditBuildingDialogOpen(true)}
+      >
+        <Edit className="h-4 w-4 mr-2" />
+        Edit Building
+      </Button>
+
+      <Button 
+        variant="destructive" 
+        onClick={handleDeleteBuilding}
+      >
+        <Trash2 className="h-4 w-4 mr-2" />
+        Delete Building
+      </Button>
+    </div>
+  )}
+</div>
+
 
           {/* Building Info Card */}
           <Card className="mb-8">
@@ -445,7 +451,7 @@ export default function BuildingDetailsPage({ params }) {
           </div>
 
           {/* 🏠 Table of Addresses */}
-          <Card>
+          <Card className="bg-white">
             <CardHeader>
               <CardTitle>All Addresses</CardTitle>
               <CardDescription>
