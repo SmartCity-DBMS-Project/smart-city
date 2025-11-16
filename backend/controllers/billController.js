@@ -111,7 +111,7 @@ async function createBill(req, res) {
     console.log('Creating bill with data:', req.body);
     
     // Validate required fields
-    const { address_id, bill_type, amount, due_date, status } = req.body;
+    const { address_id, bill_type, units, due_date, status } = req.body;
     
     if (!address_id) {
       return res.status(400).json({ error: "Address ID is required" });
@@ -121,8 +121,8 @@ async function createBill(req, res) {
       return res.status(400).json({ error: "Bill type is required" });
     }
     
-    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
-      return res.status(400).json({ error: "Amount must be a positive number" });
+    if (!units || isNaN(parseFloat(units)) || parseFloat(units) <= 0) {
+      return res.status(400).json({ error: "Units must be a positive number" });
     }
     
     if (!due_date) {
@@ -130,11 +130,12 @@ async function createBill(req, res) {
     }
     
     // Map frontend data to database schema
-    // Frontend sends: { address_id, bill_type, amount, due_date, status }
+    // Frontend sends: { address_id, bill_type, units, due_date, status }
     // Database expects: { bill_id, address_id, utility_id, units, amount, due_date, status }
     const { bill_type: billType, ...restData } = req.body;
     
     let utility_id = null;
+    let charge_per_unit = null;
     
     // If bill_type is provided, find or create the utility
     if (billType) {
@@ -169,13 +170,31 @@ async function createBill(req, res) {
       }
       
       utility_id = utility.utility_id;
+      charge_per_unit = utility.charge_per_unit;
+    }
+    
+    // Calculate amount based on units and charge_per_unit
+    let amount = 0;
+    if (charge_per_unit) {
+      amount = parseFloat(units) * parseFloat(charge_per_unit);
+    }
+    
+    // Handle date parsing
+    let parsedDueDate;
+    try {
+      parsedDueDate = new Date(due_date);
+      if (isNaN(parsedDueDate.getTime())) {
+        throw new Error('Invalid date');
+      }
+    } catch (dateError) {
+      return res.status(400).json({ error: "Invalid due date format. Please use YYYY-MM-DD format." });
     }
     
     const billData = {
       utility_id: utility_id,
-      units: null,
-      amount: parseFloat(amount),
-      due_date: new Date(due_date),
+      units: parseFloat(units),
+      amount: amount,
+      due_date: parsedDueDate,
       ...restData
     };
     
@@ -211,7 +230,7 @@ async function updateBill(req, res) {
     console.log('Updating bill ID:', req.params.id, 'with data:', req.body);
     
     // Validate required fields
-    const { address_id, bill_type, amount, due_date, status } = req.body;
+    const { address_id, bill_type, units, due_date, status } = req.body;
     
     if (!address_id) {
       return res.status(400).json({ error: "Address ID is required" });
@@ -221,8 +240,8 @@ async function updateBill(req, res) {
       return res.status(400).json({ error: "Bill type is required" });
     }
     
-    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
-      return res.status(400).json({ error: "Amount must be a positive number" });
+    if (!units || isNaN(parseFloat(units)) || parseFloat(units) <= 0) {
+      return res.status(400).json({ error: "Units must be a positive number" });
     }
     
     if (!due_date) {
@@ -233,6 +252,7 @@ async function updateBill(req, res) {
     const { bill_type: billType, ...restData } = req.body;
     
     let utility_id = null;
+    let charge_per_unit = null;
     
     // If bill_type is provided, find or create the utility
     if (billType) {
@@ -254,12 +274,19 @@ async function updateBill(req, res) {
       }
       
       utility_id = utility.utility_id;
+      charge_per_unit = utility.charge_per_unit;
+    }
+    
+    // Calculate amount based on units and charge_per_unit
+    let amount = 0;
+    if (charge_per_unit) {
+      amount = parseFloat(units) * parseFloat(charge_per_unit);
     }
     
     const billData = {
       utility_id: utility_id,
-      units: null,
-      amount: parseFloat(amount),
+      units: parseFloat(units),
+      amount: amount,
       due_date: new Date(due_date),
       ...restData
     };

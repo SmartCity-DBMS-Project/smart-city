@@ -45,7 +45,30 @@ const getUtilityTypes = async (req, res) => {
   }
 };
 
+// Update utility
+const updateUtility = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { charge_per_unit, type, dept_id } = req.body;
+    
+    const updatedUtility = await prisma.utility.update({
+      where: { utility_id: parseInt(id) },
+      data: {
+        charge_per_unit: charge_per_unit ? parseFloat(charge_per_unit) : undefined,
+        type,
+        dept_id: dept_id ? parseInt(dept_id) : undefined
+      }
+    });
+    
+    res.json(updatedUtility);
+  } catch (error) {
+    console.error('Error updating utility:', error);
+    res.status(500).json({ error: 'Failed to update utility' });
+  }
+};
+
 module.exports = {
   getAllUtilities,
-  getUtilityTypes
+  getUtilityTypes,
+  updateUtility
 };
