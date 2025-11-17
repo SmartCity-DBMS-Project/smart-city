@@ -165,7 +165,89 @@ async function deleteNotification(req, res) {
   }
 }
 
+// Server-Sent Events endpoint for real-time notifications
+async function streamNotifications(req, res) {
+  try {
+    // Set SSE headers
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*'
+    });
+
+    // Get user data from JWT token
+    const tokenData = req.user;
+    
+    if (!tokenData || !tokenData.email) {
+      res.write(`data: ${JSON.stringify({ error: "Not logged in" })}\n\n`);
+      res.end();
+      return;
+    }
+
+    // Fetch login info to get login_id
+    const loginInfo = await prisma.login.findUnique({
+      where: {
+        email: tokenData.email,
+      },
+      select: {
+        login_id: true,
+        citizen_id: true,
+        role: true
+      }
+    });
+    
+    if (!loginInfo) {
+      res.write(`data: ${JSON.stringify({ error: "User not found" })}\n\n`);
+      res.end();
+      return;
+    }
+
+    // Send initial connection message
+    res.write(`data: ${JSON.stringify({ type: 'connected', message: 'Connected to notification stream' })}\n\n`);
+
+    // Function to send notifications
+    const sendNotifications = async () => {
+      try {
+        // Fetch notifications for this user
+        const notifications = await prisma.notifications.findMany({
+          where: {
+            login_id: loginInfo.login_id
+          },
+          orderBy: {
+            created_at: 'desc'
+          },
+          take: 5 // Only send the 5 most recent notifications
+        });
+        
+        // Send notifications to client
+        res.write(`data: ${JSON.stringify({ type: 'notifications', data: notifications })}\n\n`);
+      } catch (error) {
+        console.error("Error fetching notifications for stream:", error);
+        res.write(`data: ${JSON.stringify({ type: 'error', message: "Failed to fetch notifications" })}\n\n`);
+      }
+    };
+
+    // Send initial notifications
+    await sendNotifications();
+
+    // Set up interval to send updates every 30 seconds
+    const interval = setInterval(sendNotifications, 30000);
+
+    // Clean up when connection is closed
+    req.on('close', () => {
+      clearInterval(interval);
+      res.end();
+    });
+  } catch (error) {
+    console.error("Error in notification stream:", error);
+    res.write(`data: ${JSON.stringify({ type: 'error', message: "Failed to establish notification stream" })}\n\n`);
+    res.end();
+  }
+}
+
 module.exports = {
   getUserNotifications,
-  deleteNotification
+  deleteNotification,
+  streamNotifications
 };

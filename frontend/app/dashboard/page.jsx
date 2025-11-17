@@ -1,238 +1,428 @@
 "use client";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  FileText,
-  CreditCard,
-  Clipboard,
-  User,
-  Mail,
-  Shield,
-  Bell,
+
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { 
+  FileText, 
+  CreditCard, 
+  Clipboard, 
+  User, 
+  Bell, 
   Settings,
+  TrendingUp,
+  Building,
+  Users,
+  Calendar,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  BarChart3,
+  PieChart,
+  Activity,
+  Flag,
+  Zap,
+  DollarSign,
+  Eye,
+  Target
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import SkeletonLoader from "@/components/SkeletonLoader";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Cell, LineChart, Line, AreaChart, Area } from "recharts";
+import { TaskManager } from "@/components/TaskManager";
+import { ProjectTimeline } from "@/components/ProjectTimeline";
 
 export default function DashboardPage() {
   const { user, loading } = useUser();
   const router = useRouter();
+  const [stats, setStats] = useState({
+    totalBills: 0,
+    pendingBills: 0,
+    paidBills: 0,
+    totalRequests: 0,
+    pendingRequests: 0,
+    resolvedRequests: 0,
+    activeUsers: 0,
+    systemHealth: 0
+  });
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
+    
+    // Mock data for demonstration
+    if (user) {
+      setStats({
+        totalBills: user.role === "ADMIN" ? 124 : 5,
+        pendingBills: user.role === "ADMIN" ? 23 : 2,
+        paidBills: user.role === "ADMIN" ? 101 : 3,
+        totalRequests: user.role === "ADMIN" ? 67 : 3,
+        pendingRequests: user.role === "ADMIN" ? 12 : 1,
+        resolvedRequests: user.role === "ADMIN" ? 55 : 2,
+        activeUsers: user.role === "ADMIN" ? 1240 : 0,
+        systemHealth: 98
+      });
+    }
   }, [user, loading]);
 
-  if (loading) return <LoadingState />;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-acc-blue"></div>
+      </div>
+    );
+  }
+
   if (!user) return null;
 
   const displayName = user.full_name || user.email;
-  const lastLogin = user.last_login
-    ? new Date(user.last_login).toLocaleString()
-    : null;
 
+  // Quick actions based on user role
   const quickActions = [
-    { name: "New Request", icon: FileText, slug: "/dashboard/requests", role: "CITIZEN" },
-    { name: "Manage Requests", icon: FileText, slug: "/dashboard/requests", role: "ADMIN" },
+    { name: "New Request", icon: FileText, slug: "/dashboard/requests", role: "CITIZEN", color: "bg-blue-500" },
+    { name: "Manage Requests", icon: FileText, slug: "/dashboard/requests", role: "ADMIN", color: "bg-blue-500" },
+    { name: "Pay Bills", icon: CreditCard, slug: "/dashboard/bills", role: "CITIZEN", color: "bg-green-500" },
+    { name: "Manage Bills", icon: CreditCard, slug: "/dashboard/bills", role: "ADMIN", color: "bg-green-500" },
+    { name: "Buildings", icon: Building, slug: "/dashboard/manage-buildings", role: "ADMIN", color: "bg-purple-500" },
+    { name: "Citizens", icon: Users, slug: "/dashboard/manage-citizens", role: "ADMIN", color: "bg-orange-500" },
+    { name: "Notifications", icon: Bell, slug: "/dashboard/notifications", role: "ALL", color: "bg-yellow-500" },
+    { name: "Settings", icon: Settings, slug: "/dashboard/settings", role: "ALL", color: "bg-gray-500" },
+  ];
 
-    { name: "Pay Bills", icon: CreditCard, slug: "/dashboard/bills", role: "CITIZEN" },
-    { name: "Manage Bills", icon: CreditCard, slug: "/dashboard/bills", role: "ADMIN" },
+  // Mock data for charts
+  const billData = [
+    { name: 'Jan', bills: 12 },
+    { name: 'Feb', bills: 19 },
+    { name: 'Mar', bills: 8 },
+    { name: 'Apr', bills: 15 },
+    { name: 'May', bills: 11 },
+    { name: 'Jun', bills: 6 },
+  ];
 
-    { name: "Manage Buildings", icon: Clipboard, slug: "/dashboard/manage-buildings", role: "ADMIN" },
-    { name: "Manage Citizens", icon: User, slug: "/dashboard/manage-citizens", role: "ADMIN" },
+  const requestStatusData = [
+    { name: 'Pending', value: stats.pendingRequests, color: '#ff6b35' },
+    { name: 'Resolved', value: stats.resolvedRequests, color: '#34a853' },
+    { name: 'In Progress', value: 5, color: '#1a73e8' },
+  ];
+
+  // System health data
+  const systemHealthData = [
+    { name: 'Mon', health: 95 },
+    { name: 'Tue', health: 97 },
+    { name: 'Wed', health: 98 },
+    { name: 'Thu', health: 96 },
+    { name: 'Fri', health: 98 },
+    { name: 'Sat', health: 99 },
+    { name: 'Sun', health: 98 },
+  ];
+
+  // User activity data
+  const userActivityData = [
+    { name: 'Mon', users: 120 },
+    { name: 'Tue', users: 150 },
+    { name: 'Wed', users: 180 },
+    { name: 'Thu', users: 140 },
+    { name: 'Fri', users: 200 },
+    { name: 'Sat', users: 250 },
+    { name: 'Sun', users: 300 },
   ];
 
   return (
-    <main className="flex flex-col items-center min-h-screen w-full">
+    <div className="min-h-screen bg-background p-6">
+      {/* Welcome Section */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground">Welcome back, {displayName} 👋</h1>
+        <p className="text-muted-foreground mt-2">Here's what's happening with your city services today.</p>
+      </div>
 
-      {/* ============================================================ */}
-      {/* SECTION 1 — WELCOME                                          */}
-      {/* ============================================================ */}
-      <section className="w-full py-10 md:py-14 bg-white">
-        <div className="container mx-auto max-w-6xl px-4 md:px-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard 
+          title="Total Bills" 
+          value={stats.totalBills} 
+          icon={<CreditCard className="h-5 w-5" />} 
+          trend="+12%" 
+          color="bg-blue-500"
+        />
+        <StatCard 
+          title="Pending Bills" 
+          value={stats.pendingBills} 
+          icon={<Clock className="h-5 w-5" />} 
+          trend="-3%" 
+          color="bg-orange-500"
+        />
+        <StatCard 
+          title="Total Requests" 
+          value={stats.totalRequests} 
+          icon={<FileText className="h-5 w-5" />} 
+          trend="+8%" 
+          color="bg-green-500"
+        />
+        <StatCard 
+          title="Resolved Requests" 
+          value={stats.resolvedRequests} 
+          icon={<CheckCircle className="h-5 w-5" />} 
+          trend="+15%" 
+          color="bg-purple-500"
+        />
+      </div>
 
-          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Bills Chart */}
+        <Card className="bg-card border border-border lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-acc-blue" />
+              Monthly Bills Overview
+            </CardTitle>
+            <CardDescription>Track your billing trends over the past 6 months</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={billData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+                  <YAxis stroke="hsl(var(--muted-foreground))" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      borderColor: 'hsl(var(--border))',
+                      color: 'hsl(var(--foreground))'
+                    }} 
+                  />
+                  <Bar dataKey="bills" fill="hsl(var(--acc-blue))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
 
-            {/* LEFT — USER DETAILS */}
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-primary leading-tight">
-                Welcome, <span>{displayName}!</span>
-              </h1>
-              <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full"></div>
-
-              <div className="mt-3 space-y-1">
-                <p className="text-sm md:text-base text-muted-foreground flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  {user.email}
-                </p>
-
-                <p className="text-xs md:text-sm text-muted-foreground flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  {user.role}
-                </p>
-
-                {lastLogin && (
-                  <p className="text-xs md:text-sm text-muted-foreground">
-                    Last login: {lastLogin}
-                  </p>
-                )}
+        {/* System Health */}
+        <Card className="bg-card border border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-acc-yellow" />
+              System Health
+            </CardTitle>
+            <CardDescription>Current system performance metrics</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-2xl font-bold">{stats.systemHealth}%</div>
+              <div className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                Operational
               </div>
             </div>
-
-            {/* RIGHT — AVATAR */}
-            <div className="flex flex-col items-center gap-3">
-              <div className="h-20 w-20 rounded-full bg-acc-blue/10 flex items-center justify-center">
-                <User className="h-8 w-8 text-acc-blue" />
-              </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={systemHealthData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+                  <YAxis stroke="hsl(var(--muted-foreground))" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      borderColor: 'hsl(var(--border))',
+                      color: 'hsl(var(--foreground))'
+                    }} 
+                  />
+                  <Area type="monotone" dataKey="health" stroke="hsl(var(--acc-green))" fill="hsl(var(--acc-green))" fillOpacity={0.2} />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
+          </CardContent>
+        </Card>
+      </div>
 
-          </div>
+      {/* Additional Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Requests Status Chart */}
+        <Card className="bg-card border border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="h-5 w-5 text-acc-green" />
+              Request Status Distribution
+            </CardTitle>
+            <CardDescription>Current status of all service requests</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <RechartsPieChart.Pie
+                    data={requestStatusData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {requestStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </RechartsPieChart.Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      borderColor: 'hsl(var(--border))',
+                      color: 'hsl(var(--foreground))'
+                    }} 
+                  />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
 
+        {/* User Activity */}
+        <Card className="bg-card border border-border lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-acc-blue" />
+              User Activity
+            </CardTitle>
+            <CardDescription>Active users over the past week</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={userActivityData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+                  <YAxis stroke="hsl(var(--muted-foreground))" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      borderColor: 'hsl(var(--border))',
+                      color: 'hsl(var(--foreground))'
+                    }} 
+                  />
+                  <Line type="monotone" dataKey="users" stroke="hsl(var(--acc-blue))" strokeWidth={2} dot={{ stroke: 'hsl(var(--acc-blue))', strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Task Manager and Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Task Manager */}
+        <div className="lg:col-span-2">
+          <TaskManager />
         </div>
-      </section>
 
-      {/* ============================================================ */}
-      {/* SECTION 2 — YOUR INFO + NOTIFICATIONS + SETTINGS (SAME ROW)   */}
-      {/* ============================================================ */}
-      <section className="w-full py-12 bg-muted-background">
-        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-
-          {/* SINGLE CARD with two sides: LEFT info / RIGHT tiles */}
-          <Card className="bg-background w-full">
+        {/* Recent Activity */}
+        <div className="space-y-6">
+          <Card className="bg-card border border-border">
             <CardHeader>
-                <CardTitle>Your Profile</CardTitle>
-                <CardDescription>Basic information of your profile</CardDescription>
-              </CardHeader>
-            <CardContent className="p-6">
-
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-
-                {/* LEFT — YOUR INFO */}
-                <div className="space-y-2 text-sm text-primary">
-                  {/* <h2 className="text-xl font-semibold text-primary mb-2">Your Info</h2> */}
-
-                  <ProfileItem label="Name" className="text-primary" value={user.full_name} />
-                  <ProfileItem label="Email" value={user.email} />
-                  <ProfileItem label="Role" value={user.role} />
-
-                  {/* <p className="font-medium text-lg"><span className="font-medium text-primary text-lg">Name:</span> {user.full_name}</p> */}
-                  {/* <p className="font-medium text-lg"><span className="font-medium text-primary text-lg">Email:</span> {user.email}</p> */}
-                  {/* <p className="font-medium text-lg"><span className="font-medium text-primary text-lg">Role:</span> {user.role}</p> */}
-
-                  {lastLogin && (
-                    <p>
-                      <span className="font-medium text-primary">Last login:</span> {lastLogin}
-                    </p>
-                  )}
-                </div>
-
-                {/* RIGHT — NOTIFICATIONS + SETTINGS TILES */}
-                <div className="flex flex-row gap-6">
-
-                  <Link
-                    href="/dashboard/notifications"
-                    className="flex flex-col items-center justify-center gap-2
-                               p-4 rounded-lg bg-card border shadow-sm
-                               hover:bg-acc-blue hover:border-acc-blue
-                               transition duration-200 group w-40"
-                  >
-                    <Bell className="h-6 w-6 text-acc-blue group-hover:text-white transition" />
-                    <span className="text-sm font-medium group-hover:text-white">
-                      Notifications
-                    </span>
-                  </Link>
-
-                  <Link
-                    href="/dashboard/settings"
-                    className="flex flex-col items-center justify-center gap-2
-                               p-4 rounded-lg bg-card border shadow-sm
-                               hover:bg-acc-blue hover:border-acc-blue
-                               transition duration-200 group w-40"
-                  >
-                    <Settings className="h-6 w-6 text-acc-blue group-hover:text-white transition" />
-                    <span className="text-sm font-medium group-hover:text-white">
-                      Settings
-                    </span>
-                  </Link>
-
-                </div>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-acc-purple" />
+                Recent Activity
+              </CardTitle>
+              <CardDescription>Your latest notifications and updates</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <ActivityItem 
+                  icon={<CreditCard className="h-4 w-4 text-green-500" />} 
+                  title="Electricity bill generated" 
+                  description="₹2,450 for April consumption" 
+                  time="2 hours ago" 
+                />
+                <ActivityItem 
+                  icon={<FileText className="h-4 w-4 text-blue-500" />} 
+                  title="Service request submitted" 
+                  description="Garbage collection request for Sector 5" 
+                  time="5 hours ago" 
+                />
+                <ActivityItem 
+                  icon={<CheckCircle className="h-4 w-4 text-purple-500" />} 
+                  title="Request resolved" 
+                  description="Water leakage issue fixed" 
+                  time="1 day ago" 
+                />
+                <ActivityItem 
+                  icon={<AlertCircle className="h-4 w-4 text-orange-500" />} 
+                  title="Payment due reminder" 
+                  description="Water bill due in 3 days" 
+                  time="1 day ago" 
+                />
+                <ActivityItem 
+                  icon={<Flag className="h-4 w-4 text-acc-blue" />} 
+                  title="New task assigned" 
+                  description="Review Q4 budget allocation" 
+                  time="2 days ago" 
+                />
+                <ActivityItem 
+                  icon={<Target className="h-4 w-4 text-acc-green" />} 
+                  title="Project milestone reached" 
+                  description="50% of infrastructure upgrade completed" 
+                  time="3 days ago" 
+                />
+                <ActivityItem 
+                  icon={<Eye className="h-4 w-4 text-acc-purple" />} 
+                  title="New citizen registered" 
+                  description="Welcome to Smart City services" 
+                  time="4 days ago" 
+                />
+                <ActivityItem 
+                  icon={<DollarSign className="h-4 w-4 text-acc-yellow" />} 
+                  title="Budget approved" 
+                  description="₹15M allocated for public transportation" 
+                  time="5 days ago" 
+                />
               </div>
-
             </CardContent>
           </Card>
-
-          {/* ============================================================ */}
-          {/* QUICK ACTIONS — BELOW THE ENTIRE BLOCK                       */}
-          {/* ============================================================ */}
-          <div className="mt-10">
-            <Card className="bg-background">
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>Select an action to continue</CardDescription>
-              </CardHeader>
-
-              <CardContent>
-                <div className="p-8 rounded-lg bg-card border">
-                  <div className="grid grid-cols-2 md:grid-cols-2 gap-10">
-
-                    {quickActions.map((action, i) =>
-                      (action.role === user.role || action.role === "ALL") && (
-                        <Link
-                          key={i}
-                          href={action.slug}
-                          className="flex flex-col items-center justify-center gap-2
-                                    p-4 rounded-lg bg-background border shadow-sm
-                                    hover:bg-acc-blue hover:border-acc-blue
-                                    transition duration-200 group aspect-[6/3]"
-                        >
-                          <action.icon className="h-7 w-7 text-acc-blue group-hover:text-white transition" />
-                          <span className="text-md font-medium group-hover:text-white">
-                            {action.name}
-                          </span>
-                        </Link>
-                      )
-                    )}
-
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
+          
+          {/* Project Timeline */}
+          <ProjectTimeline />
         </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }
 
-/* ------------------------------------ */
-/* LOADING STATE                        */
-/* ------------------------------------ */
-function LoadingState() {
+// Stat Card Component
+function StatCard({ title, value, icon, trend, color }) {
   return (
-    <main className="flex flex-col items-center min-h-screen w-full bg-gray-50">
-      <section className="max-w-6xl w-full px-6 py-20">
-        <SkeletonLoader />
-      </section>
-      <LoadingSpinner message="Loading your dashboard..." />
-    </main>
+    <Card className="bg-card border border-border hover:shadow-md transition-shadow">
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <h3 className="text-2xl font-bold text-foreground mt-1">{value}</h3>
+          </div>
+          <div className={`p-3 rounded-full ${color} text-white`}>
+            {icon}
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-3 flex items-center">
+          <TrendingUp className="h-3 w-3 mr-1" />
+          {trend} from last month
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
-function ProfileItem({ label, value }) {
+// Activity Item Component
+function ActivityItem({ icon, title, description, time }) {
   return (
-    <div className="space-y-1">
-      <Label>{label}</Label>
-      <p className="text-lg font-medium">{value || "Not provided"}</p>
+    <div className="flex items-start gap-3">
+      <div className="mt-1">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground truncate">{description}</p>
+        <p className="text-xs text-muted-foreground mt-1">{time}</p>
+      </div>
     </div>
   );
 }
