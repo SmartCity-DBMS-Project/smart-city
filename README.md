@@ -6,6 +6,7 @@ Follow these steps to set up the project on your local machine.
 
 ---
 
+
 ## 1. Clone the Repository
 
 Replace `<repo-link>` with the actual repository link.
