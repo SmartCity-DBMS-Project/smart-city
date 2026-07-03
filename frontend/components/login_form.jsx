@@ -50,7 +50,7 @@ export default function LoginForm() {
           const data = await res.json();
           setUser(data); // contains { email, role }
         }
-        router.push("/dashboard");
+        router.push("/");
       } else {
         alert("Login failed: " + data.message);
       }

@@ -46,7 +46,7 @@ export default function Navbar() {
               </NavigationMenuLink>
             </NavigationMenuItem>
 
-            <NavigationMenuItem>
+            {/* <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link 
                   href="/dashboard" 
@@ -55,7 +55,7 @@ export default function Navbar() {
                   Dashboard
                 </Link>
               </NavigationMenuLink>
-            </NavigationMenuItem>
+            </NavigationMenuItem> */}
 
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
