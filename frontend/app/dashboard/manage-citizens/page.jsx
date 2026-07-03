@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -28,11 +28,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Plus, Search, Edit, Trash2, ArrowLeft, Loader2 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SkeletonLoader from "@/components/SkeletonLoader";
+import { toast } from "sonner";
 
 export default function ManageCitizensPage() {
   const { user, loading } = useUser();
@@ -154,7 +166,7 @@ export default function ManageCitizensPage() {
     // Validate form data
     const errors = validateCitizenForm(formData);
     if (errors.length > 0) {
-      alert("Validation errors:\n" + errors.join("\n"));
+      errors.forEach((e) => toast.error(e));
       return;
     }
     
@@ -181,8 +193,9 @@ export default function ManageCitizensPage() {
       await fetchCitizens();
       setIsCreateDialogOpen(false);
       resetForm();
+      toast.success("Citizen added successfully!");
     } catch (err) {
-      alert("Error: " + err.message);
+      toast.error("Error: " + err.message);
     } finally {
       setIsCreating(false);
     }
@@ -195,7 +208,7 @@ export default function ManageCitizensPage() {
     // Validate form data
     const errors = validateCitizenForm(formData);
     if (errors.length > 0) {
-      alert("Validation errors:\n" + errors.join("\n"));
+      errors.forEach((e) => toast.error(e));
       return;
     }
     
@@ -225,34 +238,28 @@ export default function ManageCitizensPage() {
       await fetchCitizens();
       setIsEditDialogOpen(false);
       resetForm();
+      toast.success("Citizen updated successfully!");
     } catch (err) {
-      alert("Error: " + err.message);
+      toast.error("Error: " + err.message);
     } finally {
       setIsUpdating(false);
     }
   };
 
-  // Delete citizen
   const handleDeleteCitizen = async (id) => {
-    if (!confirm("Delete this citizen?")) return;
-
     try {
       const response = await fetch(
         `http://localhost:8000/api/citizens/${id}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
+        { method: "DELETE", credentials: "include" }
       );
-
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.error || "Failed to delete");
       }
-
       await fetchCitizens();
+      toast.success("Citizen deleted.");
     } catch (err) {
-      alert("Error: " + err.message);
+      toast.error("Error: " + err.message);
     }
   };
 
@@ -332,7 +339,7 @@ export default function ManageCitizensPage() {
                 }}
               >
                 <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button className="bg-acc-blue hover:bg-acc-blue/90 text-white">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Citizen
                   </Button>
@@ -433,16 +440,13 @@ export default function ManageCitizensPage() {
           </div>
 
           {/* TABLE */}
-          <Card className="bg-white shadow-md rounded-xl border border-gray-200">
+          <Card className="bg-white border border-border rounded-xl">
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle>Citizens</CardTitle>
-                  <CardDescription>
-                    All registered citizens in the system.
-                  </CardDescription>
+                  <CardDescription>All registered citizens in the system.</CardDescription>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <Search className="h-4 w-4 text-muted-foreground" />
                   <Input
@@ -504,22 +508,31 @@ export default function ManageCitizensPage() {
                         {user?.role === "ADMIN" && (
                           <TableCell>
                             <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="icon-sm"
-                                onClick={() => openEditDialog(c)}
-                              >
+                              <Button variant="outline" size="icon-sm" onClick={() => openEditDialog(c)}>
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button
-                                variant="destructive"
-                                size="icon-sm"
-                                onClick={() =>
-                                  handleDeleteCitizen(c.citizen_id)
-                                }
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="destructive" size="icon-sm">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete {c.full_name}?</AlertDialogTitle>
+                                    <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      className="bg-destructive text-white hover:bg-destructive/90"
+                                      onClick={() => handleDeleteCitizen(c.citizen_id)}
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </TableCell>
                         )}
