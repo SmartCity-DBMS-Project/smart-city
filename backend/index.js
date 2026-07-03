@@ -9,6 +9,7 @@ const requestRouter = require('./routes/requestRoutes');
 const utilitiesRouter = require('./routes/utilitiesRoutes');
 const addressRouter = require('./routes/addressRoutes');
 const notificationRouter = require('./routes/notificationRoutes');
+const statsRouter = require('./routes/statsRoutes');
 
 const cors = require('cors');
 const cookieParser = require("cookie-parser");
@@ -47,6 +48,7 @@ app.use("/api/requests", requestRouter);
 app.use("/api/utilities", utilitiesRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/stats", statsRouter);
 
 // Global error handler
 app.use((err, req, res, next) => {

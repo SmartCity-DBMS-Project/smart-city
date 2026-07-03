@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SkeletonLoader from "@/components/SkeletonLoader";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
   const { user, loading } = useUser();
@@ -34,7 +35,7 @@ export default function ProfilePage() {
 
   const fetchProfileData = async () => {
     try {
-      const response = await fetch("http://localhost:8000/auth/me", {
+      const response = await fetch("http://localhost:8000/api/auth/me", {
         credentials: "include",
       });
 
@@ -54,17 +55,23 @@ export default function ProfilePage() {
     setPasswordError("");
     setPasswordSuccess("");
 
-    if (passwordData.newPassword !== passwordData.confirmNewPassword)
-      return setPasswordError("New passwords do not match");
+    if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+      setPasswordError("New passwords do not match");
+      toast.error("New passwords do not match");
+      return;
+    }
 
-    if (passwordData.newPassword.length < 4)
-      return setPasswordError("Password must be at least 4 characters long");
+    if (passwordData.newPassword.length < 4) {
+      setPasswordError("Password must be at least 4 characters long");
+      toast.error("Password must be at least 4 characters long");
+      return;
+    }
 
     setIsChangingPassword(true);
 
     try {
       const response = await fetch(
-        `http://localhost:8000/auth/change-password/${profileData.email}`,
+        `http://localhost:8000/api/auth/change-password/${profileData.email}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -75,13 +82,18 @@ export default function ProfilePage() {
 
       if (response.ok) {
         setPasswordSuccess("Password changed successfully!");
+        toast.success("Password changed successfully!");
         setPasswordData({ newPassword: "", confirmNewPassword: "" });
+        setShowPasswordForm(false);
       } else {
         const errorData = await response.json();
-        setPasswordError(errorData.error || "Failed to change password");
+        const msg = errorData.error || "Failed to change password";
+        setPasswordError(msg);
+        toast.error(msg);
       }
     } catch (error) {
       setPasswordError("An error occurred while changing password");
+      toast.error("An error occurred while changing password");
     } finally {
       setIsChangingPassword(false);
     }
@@ -106,9 +118,9 @@ export default function ProfilePage() {
   return (
     <main className="flex flex-col items-center min-h-screen w-full">
 
-      {/* TOP SECTION — zebra bg */}
-      <section className="w-full py-12 md:py-16 bg-background">
-        <div className="container px-4 mx-auto max-w-6xl flex-col items-center gap-10 mb-8">
+      {/* TOP SECTION */}
+      <section className="w-full py-12 md:py-16 bg-background border-b border-border">
+        <div className="container px-4 mx-auto max-w-6xl flex-col items-center gap-10">
           <Button
             variant="outline"
             onClick={() => router.back()}
@@ -119,22 +131,20 @@ export default function ProfilePage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-primary mb-2">Profile Settings</h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               Manage your profile information and account settings
             </p>
-            <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full"></div>
+            <div className="w-24 h-1 bg-acc-blue mt-4 rounded-full"></div>
           </div>
         </div>
       </section>
 
-      {/* MAIN SECTION — zebra bg */}
-      <section className="w-full py-12 bg-muted-background">
+      {/* MAIN SECTION */}
+      <section className="w-full py-12 bg-muted-background flex-1">
         <div className="container px-4 mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* ===================================================== */}
           {/* PROFILE INFO (left, tall) */}
-          {/* ===================================================== */}
-          <Card className="lg:col-span-2 bg-background shadow">
+          <Card className="lg:col-span-2 bg-background border border-border rounded-xl">
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
               <CardDescription>Your account details</CardDescription>
@@ -171,12 +181,12 @@ export default function ProfilePage() {
               <Separator />
 
               <div>
-                <h3 className="text-lg font-semibold mb-4">Addresses</h3>
+                <h3 className="text-lg font-semibold mb-4 text-primary">Addresses</h3>
 
                 {profileData?.addresses?.length > 0 ? (
                   <div className="space-y-4">
                     {profileData.addresses.map((addr, i) => (
-                      <div key={i} className="border rounded-lg p-4 bg-card/40">
+                      <div key={i} className="border border-border rounded-xl p-4 bg-muted-background/30">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <ProfileItem label="Street" value={addr.street} />
                           <ProfileItem label="Flat/Unit" value={addr.flat_no} />
@@ -189,16 +199,14 @@ export default function ProfilePage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">No addresses available</p>
+                  <p className="text-muted-foreground text-sm">No addresses available</p>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {/* ===================================================== */}
-          {/* PASSWORD CARD — sticky, short height, always visible */}
-          {/* ===================================================== */}
-          <Card className="bg-background h-fit sticky top-24 shadow">
+          {/* PASSWORD CARD (right, sticky) */}
+          <Card className="bg-background h-fit sticky top-24 border border-border rounded-xl">
             <CardHeader>
               <CardTitle>Change Password</CardTitle>
               <CardDescription>Update your account password</CardDescription>
@@ -206,7 +214,7 @@ export default function ProfilePage() {
 
             <CardContent>
               {!showPasswordForm ? (
-                <Button onClick={() => setShowPasswordForm(true)} className="w-full">
+                <Button onClick={() => setShowPasswordForm(true)} className="w-full bg-acc-blue hover:bg-acc-blue/90 text-white font-medium rounded-lg">
                   Change Password
                 </Button>
               ) : (
@@ -234,21 +242,21 @@ export default function ProfilePage() {
                   />
 
                   {passwordError && (
-                    <p className="text-red-500 text-sm">{passwordError}</p>
+                    <p className="text-red-500 text-xs font-medium">{passwordError}</p>
                   )}
                   {passwordSuccess && (
-                    <p className="text-green-500 text-sm">{passwordSuccess}</p>
+                    <p className="text-green-600 text-xs font-medium">{passwordSuccess}</p>
                   )}
 
                   <div className="flex gap-2">
-                    <Button type="submit" disabled={isChangingPassword} className="flex-1">
+                    <Button type="submit" disabled={isChangingPassword} className="flex-1 bg-acc-blue hover:bg-acc-blue/90 text-white font-medium rounded-lg">
                       {isChangingPassword ? "Changing..." : "Submit"}
                     </Button>
 
                     <Button
                       type="button"
                       variant="outline"
-                      className="flex-1"
+                      className="flex-1 border border-border hover:bg-muted font-medium rounded-lg"
                       onClick={() => {
                         setShowPasswordForm(false);
                         setPasswordData({ newPassword: "", confirmNewPassword: "" });
@@ -270,15 +278,11 @@ export default function ProfilePage() {
   );
 }
 
-/* ===================================================== */
-/* REUSABLE HELPERS                                      */
-/* ===================================================== */
-
 function ProfileItem({ label, value }) {
   return (
     <div className="space-y-1">
-      <Label>{label}</Label>
-      <p className="text-lg font-medium">{value || "Not provided"}</p>
+      <Label className="text-xs text-muted-foreground uppercase tracking-wider">{label}</Label>
+      <p className="text-sm font-semibold text-primary">{value || "Not provided"}</p>
     </div>
   );
 }
@@ -286,8 +290,16 @@ function ProfileItem({ label, value }) {
 function InputBlock({ label, id, value, onChange }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Input id={id} type="password" value={value} onChange={onChange} required minLength={4} />
+      <Label htmlFor={id} className="text-sm font-medium text-foreground">{label}</Label>
+      <Input
+        id={id}
+        type="password"
+        value={value}
+        onChange={onChange}
+        required
+        minLength={4}
+        className="bg-background border border-input rounded-lg h-10 px-3 focus:ring-2 focus:ring-ring focus:border-acc-blue text-sm"
+      />
     </div>
   );
 }

@@ -10,7 +10,7 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch("http://localhost:8000/auth/me", {
+        const res = await fetch("http://localhost:8000/api/auth/me", {
           credentials: "include",
         });
 

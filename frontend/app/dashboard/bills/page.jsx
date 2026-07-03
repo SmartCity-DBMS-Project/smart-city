@@ -1,54 +1,138 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Receipt, Plus, Edit, Trash2, Search, IndianRupee, Calendar, MapPin, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Receipt, Plus, Edit, Trash2, Search, IndianRupee, Calendar, AlertCircle, ArrowLeft, Loader2, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import AddressSearchSelect from "@/components/AddressSearchSelect";
+import { toast } from "sonner";
 
+/* ------------------------------------------------------------------ */
+/* CSV EXPORT UTILITY                                                   */
+/* ------------------------------------------------------------------ */
+function exportToCSV(rows, filename) {
+  if (!rows || rows.length === 0) {
+    toast.error("No data to export.");
+    return;
+  }
+  const headers = ["Bill ID", "Address ID", "Type", "Units", "Amount (₹)", "Due Date", "Status"];
+  const csvRows = rows.map((bill) => [
+    bill.bill_id,
+    bill.address_id,
+    bill.bill_type ?? "N/A",
+    bill.units ?? "N/A",
+    Number(bill.amount).toFixed(2),
+    new Date(bill.due_date).toLocaleDateString(),
+    bill.status,
+  ]);
+  const csvContent = [headers, ...csvRows]
+    .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast.success(`Exported ${rows.length} bill(s) to ${filename}`);
+}
+
+/* ------------------------------------------------------------------ */
+/* SORT HEADER COMPONENT                                                */
+/* ------------------------------------------------------------------ */
+function SortableHeader({ label, sortKey, currentSort, onSort }) {
+  const isActive = currentSort.key === sortKey;
+  return (
+    <button
+      className="flex items-center gap-1 font-medium hover:text-primary transition-colors"
+      onClick={() => onSort(sortKey)}
+    >
+      {label}
+      {isActive ? (
+        currentSort.dir === "asc" ? (
+          <ArrowUp className="h-3.5 w-3.5 text-acc-blue" />
+        ) : (
+          <ArrowDown className="h-3.5 w-3.5 text-acc-blue" />
+        )
+      ) : (
+        <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />
+      )}
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* MAIN PAGE                                                            */
+/* ------------------------------------------------------------------ */
 export default function BillsPage() {
   const { user, loading } = useUser();
   const router = useRouter();
-  
+
   const [bills, setBills] = useState([]);
-  const [filteredBills, setFilteredBills] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedBill, setSelectedBill] = useState(null);
-  const [utilityTypes, setUtilityTypes] = useState([]);  // Utility types for dropdown
-  const [addresses, setAddresses] = useState([]);  // Addresses for dropdown
+  const [utilityTypes, setUtilityTypes] = useState([]);
   const [formData, setFormData] = useState({
     address_id: "",
-    bill_type: "",  // This will now be the utility type
-    units: "",  // Changed from amount to units
+    bill_type: "",
+    units: "",
     due_date: "",
-    status: "PENDING"
+    status: "PENDING",
   });
-
-  // State for form submission loading
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Sorting state
+  const [sort, setSort] = useState({ key: "bill_id", dir: "desc" });
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
 
-  // Fetch utility types
+  useEffect(() => {
+    if (user) {
+      fetchBills();
+      fetchUtilityTypes();
+    }
+  }, [user]);
+
+  /* ---- Data Fetching ---- */
+  const fetchBills = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("http://localhost:8000/api/bills", {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch bills");
+      const data = await response.json();
+      setBills(data);
+    } catch (err) {
+      setError(err.message);
+      toast.error("Failed to load bills: " + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const fetchUtilityTypes = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/bills/utility-types", { 
-        method: "GET", 
-        credentials: "include" 
+      const response = await fetch("http://localhost:8000/api/bills/utility-types", {
+        method: "GET",
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch utility types");
       const data = await response.json();
@@ -58,98 +142,75 @@ export default function BillsPage() {
     }
   };
 
-  // Fetch addresses
-  const fetchAddresses = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/api/bills/addresses", { 
-        method: "GET", 
-        credentials: "include" 
-      });
-      if (!response.ok) throw new Error("Failed to fetch addresses");
-      const data = await response.json();
-      setAddresses(data);
-    } catch (err) {
-      console.error("Error fetching addresses:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchBills();
-      fetchUtilityTypes();  // Fetch utility types when user is loaded
-      fetchAddresses();  // Fetch addresses when user is loaded
-    }
-  }, [user]);
-
-  useEffect(() => {
+  /* ---- Filtering & Sorting (client-side, derived) ---- */
+  const filteredAndSorted = useMemo(() => {
     const filtered = searchTerm
-      ? bills.filter(bill => 
-          bill.bill_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          bill.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          bill.address_id?.toString().includes(searchTerm)
+      ? bills.filter(
+          (bill) =>
+            bill.bill_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            bill.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            bill.address_id?.toString().includes(searchTerm)
         )
       : bills;
-    setFilteredBills(filtered);
-  }, [searchTerm, bills]);
 
-  const fetchBills = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch("http://localhost:8000/api/bills", { method: "GET", credentials: "include" });
-      if (!response.ok) throw new Error("Failed to fetch bills");
-      const data = await response.json();
-      setBills(data);
-      setFilteredBills(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+    return [...filtered].sort((a, b) => {
+      let aVal = a[sort.key];
+      let bVal = b[sort.key];
+      // Numeric fields
+      if (sort.key === "bill_id" || sort.key === "address_id" || sort.key === "units") {
+        aVal = Number(aVal ?? 0);
+        bVal = Number(bVal ?? 0);
+      } else if (sort.key === "amount") {
+        aVal = Number(aVal ?? 0);
+        bVal = Number(bVal ?? 0);
+      } else if (sort.key === "due_date") {
+        aVal = new Date(aVal).getTime();
+        bVal = new Date(bVal).getTime();
+      } else {
+        aVal = String(aVal ?? "").toLowerCase();
+        bVal = String(bVal ?? "").toLowerCase();
+      }
+      if (aVal < bVal) return sort.dir === "asc" ? -1 : 1;
+      if (aVal > bVal) return sort.dir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [bills, searchTerm, sort]);
+
+  const handleSort = (key) => {
+    setSort((prev) =>
+      prev.key === key ? { key, dir: prev.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }
+    );
   };
 
-  // Validate bill form data
+  /* ---- Stats ---- */
+  const stats = useMemo(() => {
+    const total = filteredAndSorted.reduce((sum, b) => sum + Number(b.amount), 0);
+    const pending = filteredAndSorted.filter((b) => b.status === "PENDING").length;
+    const paid = filteredAndSorted.filter((b) => b.status === "PAID").length;
+    const overdue = filteredAndSorted.filter((b) => b.status === "OVERDUE").length;
+    return { total, pending, paid, overdue };
+  }, [filteredAndSorted]);
+
+  /* ---- Form Actions ---- */
   const validateBillForm = (data) => {
     const errors = [];
-    
-    if (!data.address_id) {
-      errors.push("Address is required");
-    }
-    
-    if (!data.bill_type) {
-      errors.push("Bill type is required");
-    }
-    
-    if (!data.units || isNaN(parseFloat(data.units)) || parseFloat(data.units) <= 0) {
+    if (!data.address_id) errors.push("Address is required");
+    if (!data.bill_type) errors.push("Bill type is required");
+    if (!data.units || isNaN(parseFloat(data.units)) || parseFloat(data.units) <= 0)
       errors.push("Units must be a positive number");
-    }
-    
-    if (!data.due_date) {
-      errors.push("Due date is required");
-    }
-    
+    if (!data.due_date) errors.push("Due date is required");
     return errors;
   };
 
   const handleCreateBill = async (e) => {
     e.preventDefault();
-    
-    // Validate form data
     const errors = validateBillForm(formData);
     if (errors.length > 0) {
-      alert("Validation errors:\n" + errors.join("\n"));
+      errors.forEach((err) => toast.error(err));
       return;
     }
-    
     setIsCreating(true);
     try {
-      console.log('Creating bill with data:', {
-        address_id: parseInt(formData.address_id),
-        bill_type: formData.bill_type,
-        units: parseFloat(formData.units),  // Changed from amount to units
-        due_date: new Date(formData.due_date).toISOString(),
-        status: formData.status
-      });
-      
       const response = await fetch("http://localhost:8000/api/bills", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -157,27 +218,21 @@ export default function BillsPage() {
         body: JSON.stringify({
           address_id: parseInt(formData.address_id),
           bill_type: formData.bill_type,
-          units: parseFloat(formData.units),  // Changed from amount to units
+          units: parseFloat(formData.units),
           due_date: new Date(formData.due_date).toISOString(),
-          status: formData.status
+          status: formData.status,
         }),
       });
-      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Failed to create bill" }));
-        console.error('Backend error:', errorData);
         throw new Error(errorData.error || "Failed to create bill");
       }
-      
-      const result = await response.json();
-      console.log('Bill created successfully:', result);
-      
       await fetchBills();
       setIsCreateDialogOpen(false);
       resetForm();
+      toast.success("Bill created successfully!");
     } catch (err) {
-      console.error('Error creating bill:', err);
-      alert("Error creating bill: " + err.message);
+      toast.error("Failed to create bill: " + err.message);
     } finally {
       setIsCreating(false);
     }
@@ -185,14 +240,11 @@ export default function BillsPage() {
 
   const handleUpdateBill = async (e) => {
     e.preventDefault();
-    
-    // Validate form data
     const errors = validateBillForm(formData);
     if (errors.length > 0) {
-      alert("Validation errors:\n" + errors.join("\n"));
+      errors.forEach((err) => toast.error(err));
       return;
     }
-    
     setIsUpdating(true);
     try {
       const response = await fetch(`http://localhost:8000/api/bills/${selectedBill.bill_id}`, {
@@ -202,33 +254,34 @@ export default function BillsPage() {
         body: JSON.stringify({
           address_id: parseInt(formData.address_id),
           bill_type: formData.bill_type,
-          units: parseFloat(formData.units),  // Changed from amount to units
+          units: parseFloat(formData.units),
           due_date: new Date(formData.due_date).toISOString(),
-          status: formData.status
+          status: formData.status,
         }),
       });
       if (!response.ok) throw new Error("Failed to update bill");
       await fetchBills();
       setIsEditDialogOpen(false);
       resetForm();
+      toast.success("Bill updated successfully!");
     } catch (err) {
-      alert("Error: " + err.message);
+      toast.error("Failed to update bill: " + err.message);
     } finally {
       setIsUpdating(false);
     }
   };
 
   const handleDeleteBill = async (billId) => {
-    if (!confirm("Delete this bill?")) return;
     try {
       const response = await fetch(`http://localhost:8000/api/bills/${billId}`, {
         method: "DELETE",
-        credentials: "include"
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to delete bill");
       await fetchBills();
+      toast.success("Bill deleted.");
     } catch (err) {
-      alert("Error: " + err.message);
+      toast.error("Failed to delete bill: " + err.message);
     }
   };
 
@@ -237,15 +290,15 @@ export default function BillsPage() {
     setFormData({
       address_id: bill.address_id.toString(),
       bill_type: bill.bill_type,
-      units: bill.units ? bill.units.toString() : "",  // Changed from amount to units
-      due_date: new Date(bill.due_date).toISOString().split('T')[0],
-      status: bill.status
+      units: bill.units ? bill.units.toString() : "",
+      due_date: new Date(bill.due_date).toISOString().split("T")[0],
+      status: bill.status,
     });
     setIsEditDialogOpen(true);
   };
 
   const resetForm = () => {
-    setFormData({ address_id: "", bill_type: "", units: "", due_date: "", status: "PENDING" });  // Changed from amount to units
+    setFormData({ address_id: "", bill_type: "", units: "", due_date: "", status: "PENDING" });
   };
 
   const getStatusColor = (status) => {
@@ -257,67 +310,89 @@ export default function BillsPage() {
     }
   };
 
-  const calculateStats = () => {
-    const total = filteredBills.reduce((sum, bill) => sum + Number(bill.amount), 0);
-    const pending = filteredBills.filter(b => b.status === "PENDING").length;
-    const paid = filteredBills.filter(b => b.status === "PAID").length;
-    const overdue = filteredBills.filter(b => b.status === "OVERDUE").length;
-    return { total, pending, paid, overdue };
-  };
+  /* ---- Shared Form Fields ---- */
+  const BillFormFields = () => (
+    <div className="grid gap-4 py-4">
+      <div>
+        <Label className="text-sm font-medium text-gray-700">Address</Label>
+        <AddressSearchSelect
+          id="address_id"
+          value={formData.address_id}
+          onChange={(value) => setFormData({ ...formData, address_id: value })}
+          required
+          className="mt-1"
+        />
+      </div>
+      <div>
+        <Label className="text-sm font-medium text-gray-700">Bill Type</Label>
+        <select
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs mt-1"
+          value={formData.bill_type || ""}
+          onChange={(e) => setFormData({ ...formData, bill_type: e.target.value })}
+          required
+        >
+          <option value="">Select bill type</option>
+          {utilityTypes.map((u) => (
+            <option key={u.utility_id} value={u.type}>
+              {u.type}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <Label className="text-sm font-medium text-gray-700">Units</Label>
+        <Input
+          type="number"
+          step="0.01"
+          value={formData.units || ""}
+          onChange={(e) => setFormData({ ...formData, units: e.target.value })}
+          required
+          className="mt-1"
+        />
+      </div>
+      <div>
+        <Label className="text-sm font-medium text-gray-700">Due Date</Label>
+        <Input
+          type="date"
+          value={formData.due_date || ""}
+          onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+          required
+          className="mt-1"
+        />
+      </div>
+      <div>
+        <Label className="text-sm font-medium text-gray-700">Status</Label>
+        <select
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs mt-1"
+          value={formData.status}
+          onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+        >
+          <option value="PENDING">Pending</option>
+          <option value="PAID">Paid</option>
+          <option value="OVERDUE">Overdue</option>
+        </select>
+      </div>
+    </div>
+  );
 
-  // Function to calculate amount based on units and charge_per_unit
-  const calculateAmount = (units, chargePerUnit) => {
-    if (!units || !chargePerUnit) return 0;
-    return (parseFloat(units) * parseFloat(chargePerUnit)).toFixed(2);
-  };
-
-  const stats = calculateStats();
-
+  /* ---- Loading States ---- */
   if (loading) return (
     <main className="flex flex-col items-center min-h-screen w-full">
       <section className="w-full py-12 md:py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-            <div>
-              <SkeletonLoader />
-            </div>
-          </div>
+          <SkeletonLoader />
         </div>
       </section>
-  
       <section className="w-full py-12 bg-muted-background flex-1 flex items-center justify-center">
-        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <LoadingSpinner message="Loading bills..." />
-        </div>
+        <LoadingSpinner message="Loading bills..." />
       </section>
     </main>
   );
 
   if (isLoading) return (
     <main className="flex flex-col items-center min-h-screen w-full">
-      <section className="w-full py-12 md:py-16 bg-background">
-        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          <div className="flex items-center gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-primary mb-2">Bills Management</h1>
-              <p className="text-muted-foreground">View and manage your utility bills</p>
-            </div>
-            {user?.role === "ADMIN" && (
-              <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-            )}
-          </div>
-        </div>
-      </section>
-  
       <section className="w-full py-12 bg-muted-background flex-1 flex items-center justify-center">
-        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <LoadingSpinner message="Loading bills..." />
-        </div>
+        <LoadingSpinner message="Loading bills..." />
       </section>
     </main>
   );
@@ -326,155 +401,60 @@ export default function BillsPage() {
 
   return (
     <main className="flex flex-col items-center min-h-screen w-full">
+      {/* ── HEADER SECTION ── */}
       <section className="w-full py-12 md:py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          {/* BACK BUTTON (separate row) */}
-<div className="mb-4">
-  <Button
-    variant="outline"
-    onClick={() => router.back()}
-    className="flex items-center gap-2"
-  >
-    <ArrowLeft className="h-4 w-4" />
-    Back
-  </Button>
-</div>
-
-{/* TITLE + CREATE BILL (same row) */}
-<div className="flex items-center justify-between mb-8">
-
-  {/* CENTERED TITLE */}
-  <div className="flex-1 text-left">
-    <h1 className="text-3xl font-bold text-primary mb-2">Bills Management</h1>
-    <p className="text-muted-foreground">View and manage your utility bills</p>
-    <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full"></div>
-  </div>
-
-  {/* CREATE BILL — right side */}
-  {user?.role === "ADMIN" && (
-    <Dialog
-      open={isCreateDialogOpen}
-      onOpenChange={(open) => {
-        setIsCreateDialogOpen(open);
-        if (open) resetForm();
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button className="bg-acc-blue hover:bg-acc-blue/90 whitespace-nowrap ml-4">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Bill
-        </Button>
-      </DialogTrigger>
-
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create New Bill</DialogTitle>
-          <DialogDescription>Add a new bill to the system</DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleCreateBill}>
-          <div className="grid gap-4 py-4">
-            <div>
-              <Label className="text-sm font-medium text-gray-700">Address</Label>
-              <AddressSearchSelect
-                id="address_id"
-                value={formData.address_id}
-                onChange={(value) =>
-                  setFormData({ ...formData, address_id: value })
-                }
-                required
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-gray-700">Bill Type</Label>
-              <select
-                id="bill_type"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs mt-1"
-                value={formData.bill_type || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, bill_type: e.target.value })
-                }
-                required
-              >
-                <option value="">Select bill type</option>
-                {utilityTypes.map((u) => (
-                  <option key={u.utility_id} value={u.type}>
-                    {u.type}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-gray-700">Units</Label>
-              <Input
-                id="units"
-                type="number"
-                step="0.01"
-                value={formData.units || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, units: e.target.value })
-                }
-                required
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-gray-700">Due Date</Label>
-              <Input
-                id="due_date"
-                type="date"
-                value={formData.due_date || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, due_date: e.target.value })
-                }
-                required
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-gray-700">Status</Label>
-              <select
-                id="status"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs mt-1"
-                value={formData.status}
-                onChange={(e) =>
-                  setFormData({ ...formData, status: e.target.value })
-                }
-              >
-                <option value="PENDING">Pending</option>
-                <option value="PAID">Paid</option>
-                <option value="OVERDUE">Overdue</option>
-              </select>
-            </div>
-
+          {/* Back button */}
+          <div className="mb-4">
+            <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
           </div>
 
-          <DialogFooter>
-            <Button type="submit" className="w-full" disabled={isCreating}>
-              {isCreating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Bill...
-                </>
-              ) : (
-                "Create Bill"
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )}
+          {/* Title row */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1 text-left">
+              <h1 className="text-3xl font-bold text-primary mb-2">Bills Management</h1>
+              <p className="text-muted-foreground">View and manage your utility bills</p>
+              <div className="w-24 h-1 bg-acc-blue mt-4 mb-6 rounded-full" />
+            </div>
 
-</div>
+            {user?.role === "ADMIN" && (
+              <Dialog
+                open={isCreateDialogOpen}
+                onOpenChange={(open) => {
+                  setIsCreateDialogOpen(open);
+                  if (open) resetForm();
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-acc-blue hover:bg-acc-blue/90 whitespace-nowrap ml-4">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Bill
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Bill</DialogTitle>
+                    <DialogDescription>Add a new bill to the system</DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateBill}>
+                    <BillFormFields />
+                    <DialogFooter>
+                      <Button type="submit" className="w-full" disabled={isCreating}>
+                        {isCreating ? (
+                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating Bill...</>
+                        ) : "Create Bill"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
 
-
-
+          {/* Stats cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="border-t-4 border-t-acc-blue">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -516,52 +496,78 @@ export default function BillsPage() {
         </div>
       </section>
 
+      {/* ── TABLE SECTION ── */}
       <section className="w-full py-12 bg-muted-background">
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <Card className="bg-background">
             <CardHeader>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <CardTitle>All Bills</CardTitle>
-                  <CardDescription>List of all bills in the system</CardDescription>
+                  <CardDescription>
+                    {filteredAndSorted.length} bill{filteredAndSorted.length !== 1 ? "s" : ""} shown
+                  </CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Search className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Search className="h-4 w-4 text-muted-foreground shrink-0" />
                   <Input
-                    placeholder="Search Bills..."
+                    placeholder="Search bills..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="max-w-sm bg-background"
                   />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1.5 shrink-0"
+                    onClick={() => exportToCSV(filteredAndSorted, "bills.csv")}
+                  >
+                    <Download className="h-4 w-4" />
+                    CSV
+                  </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               {error ? (
                 <div className="text-center py-8 text-red-500">Error: {error}</div>
-              ) : filteredBills.length === 0 ? (
+              ) : filteredAndSorted.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">No bills found</div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Bill ID</TableHead>
-                      <TableHead>Address ID</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Units</TableHead>
-                      <TableHead>Amount (₹)</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>
+                        <SortableHeader label="Bill ID" sortKey="bill_id" currentSort={sort} onSort={handleSort} />
+                      </TableHead>
+                      <TableHead>
+                        <SortableHeader label="Address ID" sortKey="address_id" currentSort={sort} onSort={handleSort} />
+                      </TableHead>
+                      <TableHead>
+                        <SortableHeader label="Type" sortKey="bill_type" currentSort={sort} onSort={handleSort} />
+                      </TableHead>
+                      <TableHead>
+                        <SortableHeader label="Units" sortKey="units" currentSort={sort} onSort={handleSort} />
+                      </TableHead>
+                      <TableHead>
+                        <SortableHeader label="Amount (₹)" sortKey="amount" currentSort={sort} onSort={handleSort} />
+                      </TableHead>
+                      <TableHead>
+                        <SortableHeader label="Due Date" sortKey="due_date" currentSort={sort} onSort={handleSort} />
+                      </TableHead>
+                      <TableHead>
+                        <SortableHeader label="Status" sortKey="status" currentSort={sort} onSort={handleSort} />
+                      </TableHead>
                       {user?.role === "ADMIN" && <TableHead>Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredBills.map((bill) => (
+                    {filteredAndSorted.map((bill) => (
                       <TableRow key={bill.bill_id}>
                         <TableCell className="font-medium">{bill.bill_id}</TableCell>
                         <TableCell>{bill.address_id}</TableCell>
                         <TableCell>{bill.bill_type}</TableCell>
-                        <TableCell>{bill.units || "N/A"}</TableCell>
+                        <TableCell>{bill.units ?? "N/A"}</TableCell>
                         <TableCell>₹{Number(bill.amount).toFixed(2)}</TableCell>
                         <TableCell>{new Date(bill.due_date).toLocaleDateString()}</TableCell>
                         <TableCell>
@@ -575,9 +581,31 @@ export default function BillsPage() {
                               <Button variant="outline" size="icon-sm" onClick={() => openEditDialog(bill)}>
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button variant="destructive" size="icon-sm" onClick={() => handleDeleteBill(bill.bill_id)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {/* Delete with AlertDialog */}
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="destructive" size="icon-sm">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Bill #{bill.bill_id}?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete this bill. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      className="bg-destructive text-white hover:bg-destructive/90"
+                                      onClick={() => handleDeleteBill(bill.bill_id)}
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </TableCell>
                         )}
@@ -591,75 +619,27 @@ export default function BillsPage() {
         </div>
       </section>
 
+      {/* ── EDIT DIALOG ── */}
       {user?.role === "ADMIN" && (
-        <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
-          setIsEditDialogOpen(open);
-          if (!open) {
-            resetForm();
-            setSelectedBill(null);
-          }
-        }}>
+        <Dialog
+          open={isEditDialogOpen}
+          onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            if (!open) { resetForm(); setSelectedBill(null); }
+          }}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Bill</DialogTitle>
               <DialogDescription>Update bill information</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleUpdateBill}>
-              <div className="grid gap-4 py-4">
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Address</Label>
-                  <AddressSearchSelect
-                    id="edit_address_id"
-                    value={formData.address_id}
-                    onChange={(value) => setFormData({...formData, address_id: value})}
-                    required
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Bill Type</Label>
-                  <select 
-                    id="edit_bill_type" 
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs mt-1"
-                    value={formData.bill_type || ""} 
-                    onChange={(e) => setFormData({...formData, bill_type: e.target.value})}
-                    required
-                  >
-                    <option value="">Select a bill type</option>
-                    {utilityTypes.map((utility) => (
-                      <option key={utility.utility_id} value={utility.type}>
-                        {utility.type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Units</Label>
-                  <Input id="edit_units" type="number" step="0.01" value={formData.units || ""} onChange={(e) => setFormData({...formData, units: e.target.value})} required className="mt-1" />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Due Date</Label>
-                  <Input id="edit_due_date" type="date" value={formData.due_date || ""} onChange={(e) => setFormData({...formData, due_date: e.target.value})} required className="mt-1" />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Status</Label>
-                  <select id="edit_status" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs mt-1" value={formData.status || "PENDING"} onChange={(e) => setFormData({...formData, status: e.target.value})}>
-                    <option value="PENDING">Pending</option>
-                    <option value="PAID">Paid</option>
-                    <option value="OVERDUE">Overdue</option>
-                  </select>
-                </div>
-              </div>
+              <BillFormFields />
               <DialogFooter>
                 <Button type="submit" className="w-full" disabled={isUpdating}>
                   {isUpdating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Updating Bill...
-                    </>
-                  ) : (
-                    "Update Bill"
-                  )}
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Updating Bill...</>
+                  ) : "Update Bill"}
                 </Button>
               </DialogFooter>
             </form>

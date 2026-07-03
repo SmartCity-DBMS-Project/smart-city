@@ -37,8 +37,8 @@ export default function Navbar() {
           <NavigationMenuList className="flex items-center space-x-4">
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <Link 
-                  href="/" 
+                <Link
+                  href="/"
                   className="px-3 py-2 font-medium rounded-md transition-colors"
                 >
                   Home
@@ -59,15 +59,15 @@ export default function Navbar() {
 
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <Link 
-                  href="/departments" 
+                <Link
+                  href="/departments"
                   className="px-3 py-2 font-medium rounded-md transition-colors"
                 >
                   Departments
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
-            
+
             <NavigationMenuItem>
               <NavigationMenuTrigger className="px-3 py-2 rounded-md transition-colors">
                 Directory
@@ -76,8 +76,8 @@ export default function Navbar() {
                 <ul className="grid gap-2 p-4 w-[250px] mt-2">
                   <li>
                     <NavigationMenuLink asChild>
-                      <Link 
-                        href="/contact-directory" 
+                      <Link
+                        href="/contact-directory"
                         className="block p-3 rounded-md transition-colors"
                       >
                         <div className="font-medium">Contact Directory</div>
@@ -87,8 +87,8 @@ export default function Navbar() {
                   </li>
                   <li>
                     <NavigationMenuLink asChild>
-                      <Link 
-                        href="/public-representatives" 
+                      <Link
+                        href="/public-representatives"
                         className="block p-3 rounded-md transition-colors"
                       >
                         <div className="font-medium">Public Representatives</div>
@@ -98,8 +98,8 @@ export default function Navbar() {
                   </li>
                   <li>
                     <NavigationMenuLink asChild>
-                      <Link 
-                        href="/helpline" 
+                      <Link
+                        href="/helpline"
                         className="block p-3 rounded-md transition-colors"
                       >
                         <div className="font-medium">Helpline</div>
@@ -109,8 +109,8 @@ export default function Navbar() {
                   </li>
                   <li>
                     <NavigationMenuLink asChild>
-                      <Link 
-                        href="/std-pin-codes" 
+                      <Link
+                        href="/std-pin-codes"
                         className="block p-3 rounded-md transition-colors"
                       >
                         <div className="font-medium">STD & PIN Codes</div>
@@ -120,8 +120,8 @@ export default function Navbar() {
                   </li>
                   <li>
                     <NavigationMenuLink asChild>
-                      <Link 
-                        href="/public-utilities" 
+                      <Link
+                        href="/public-utilities"
                         className="block p-3 rounded-md transition-colors"
                       >
                         <div className="font-medium">Public Utilities</div>
