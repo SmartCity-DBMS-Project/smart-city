@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 import {
   Card,
@@ -24,6 +25,9 @@ import {
   Shield,
   Bell,
   Settings,
+  AlertCircle,
+  Receipt,
+  Calendar,
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -131,6 +135,48 @@ function UnauthenticatedView() {
 /* ------------------------------------------------------------------ */
 /* AUTHENTICATED VIEW                                                   */
 /* ------------------------------------------------------------------ */
+function AdminStatsBar() {
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("http://localhost:8000/api/stats", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => setStats(data))
+      .catch(() => setStats(null))
+      .finally(() => setStatsLoading(false));
+  }, []);
+
+  const items = [
+    { label: "Total Citizens",    value: stats?.totalCitizens,   icon: Users,       color: "text-acc-blue",   border: "border-t-acc-blue" },
+    { label: "Total Bills",       value: stats?.totalBills,      icon: Receipt,     color: "text-acc-green",  border: "border-t-acc-green" },
+    { label: "Pending Requests",  value: stats?.pendingRequests, icon: AlertCircle, color: "text-acc-yellow", border: "border-t-acc-yellow" },
+    { label: "Overdue Bills",     value: stats?.overdueBills,    icon: Calendar,    color: "text-red-500",    border: "border-t-red-500" },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      {items.map(({ label, value, icon: Icon, color, border }) => (
+        <Card key={label} className={`border-t-4 ${border} bg-white`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              {label}
+            </CardTitle>
+            <Icon className={`h-5 w-5 ${color}`} />
+          </CardHeader>
+          <CardContent>
+            {statsLoading ? (
+              <div className="h-7 w-12 bg-gray-200 rounded animate-pulse" />
+            ) : (
+              <div className="text-2xl font-bold text-primary">{value ?? "—"}</div>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 function AuthenticatedView({ user }) {
   const displayName = user.full_name || user.email;
   const initials = displayName
@@ -244,6 +290,9 @@ function AuthenticatedView({ user }) {
               )}
             </div>
           </div>
+
+          {/* ── ADMIN STATS BAR ── */}
+          {isAdmin && <AdminStatsBar />}
 
           {/* ── QUICK ACTIONS ── */}
           <div>

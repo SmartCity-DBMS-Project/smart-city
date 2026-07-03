@@ -82,7 +82,7 @@ export default function LoginForm() {
                 <FormControl>
                   <Input 
                     className="bg-background border border-input rounded-lg py-5 px-4 focus:ring-2 focus:ring-ring focus:border-acc-blue" 
-                    placeholder="Enter your email" 
+                    placeholder="Try 'admin@example.com' or 'citizen@example.com'" 
                     {...field} 
                   />
                 </FormControl>
@@ -105,7 +105,7 @@ export default function LoginForm() {
                   <Input 
                     className="bg-background border border-input rounded-lg py-5 px-4 focus:ring-2 focus:ring-ring focus:border-acc-blue" 
                     type="password" 
-                    placeholder="Enter your password" 
+                    placeholder="Try '01011990'" 
                     {...field} 
                   />
                 </FormControl>
